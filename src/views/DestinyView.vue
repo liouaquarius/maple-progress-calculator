@@ -44,7 +44,7 @@ const groupedSchedule = computed(() => {
     store.destiny.stageIndex,
     store.destiny.missionIndex,
     store.useTargetDate ? parseDate(store.targetDate) : null,
-    gate.value,
+    weeklyResolve.value > 0 ? gate.value : null, // 無決心產出時 resolve 永遠到不了，不判定卡關
   )
   const groups = new Map()
   for (const row of rows) {
