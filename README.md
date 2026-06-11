@@ -31,7 +31,7 @@ npm run preview  # 本機預覽正式版
 
 1. 推送專案到 GitHub（public repo）。
 2. **Settings → Pages → Build and deployment → Source 選「GitHub Actions」**。
-3. 網址為 `https://<帳號>.github.io/<repo>/`。
+3. 網址為 `https://liouaquarius.github.io/maple-progress-calculator/`。
 
 `vite.config.js` 的 `base` 設為相對路徑 `'./'`，本機與 Pages 子路徑皆可正確解析資源，不需依 repo 名稱調整。`dist/` 與 `node_modules/` 由 CI 產生／還原，不需也不應 commit。
 
