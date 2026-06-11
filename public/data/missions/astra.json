@@ -1,0 +1,5 @@
+[
+    { "mission": 1, "cost": { "battle_traces": 600, "erion_fragment": 3000 } },
+    { "mission": 2, "cost": { "battle_traces": 600, "erion_fragment": 3000 } },
+    { "mission": 3, "cost": { "battle_traces": 800, "erion_fragment": 3000 } }
+]

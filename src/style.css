@@ -1,0 +1,44 @@
+:root {
+  font-family: system-ui, "Microsoft JhengHei", sans-serif;
+  color: #e6e6e6;
+  background: #1a1a1f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+}
+
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+
+table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+th, td {
+  border: 1px solid #3a3a44;
+  padding: 0.3rem 0.6rem;
+  text-align: right;
+}
+
+th:first-child, td:first-child { text-align: left; }
+
+.status { color: #9aa; }
+.error { color: #f88; }
+
+/* 進度條容器：與 ProgressBar 的 6 個格子（label / bar / 當前量 / 斜線 / 總量 / 還差）搭配，
+   由 grid 自動對齊各欄，不需寫死寬度（ProgressBar 根為 display:contents）。 */
+.bars {
+  display: grid;
+  /* 數字欄固定 5ch（最大 5 位數），使 1fr 的進度條寬度不隨數值位數變動 */
+  grid-template-columns: max-content 1fr 5ch auto 5ch auto;
+  column-gap: 0.6rem;
+  row-gap: 1.2rem; /* 預留刻度下方到達日標註的空間 */
+  align-items: center;
+  font-size: 0.85rem;
+}

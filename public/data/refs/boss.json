@@ -1,0 +1,219 @@
+[
+    {
+        "id": "chosen_seren",
+        "name": "Chosen Seren",
+        "name_zh": "受選的賽蓮",
+        "entry_level": 260,
+        "party_size_max": 6,
+        "difficulties": [
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 0,  "battle_traces": 6,   "erion_fragment": 0 },
+                "order": 1
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 6,  "battle_traces": 15,  "erion_fragment": 0 },
+                "order": 4
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 6,  "battle_traces": 15,  "erion_fragment": 0 },
+                "order": 23
+            },
+            {
+                "tier": "extreme",
+                "rewards": { "resolve": 80, "battle_traces": 180, "erion_fragment": 30 },
+                "order": 53
+            }
+        ]
+    },
+    {
+        "id": "watcher_kalos",
+        "name": "Watcher Kalos",
+        "name_zh": "監視者卡洛斯",
+        "entry_level": 265,
+        "party_size_max": 6,
+        "difficulties": [
+            {
+                "tier": "easy",
+                "rewards": { "resolve": 0,   "battle_traces": 6,   "erion_fragment": 0 },
+                "order": 2
+            },
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 10,  "battle_traces": 30,  "erion_fragment": 0 },
+                "order": 12
+            },
+            {
+                "tier": "chaos",
+                "rewards": { "resolve": 70,  "battle_traces": 100, "erion_fragment": 0 },
+                "order": 31
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 70,  "battle_traces": 100, "erion_fragment": 0 },
+                "order": 31
+            },
+            {
+                "tier": "extreme",
+                "rewards": { "resolve": 400, "battle_traces": 500, "erion_fragment": 180 },
+                "order": 71
+            }
+        ]
+    },
+    {
+        "id": "first_adversary",
+        "name": "First Adversary",
+        "name_zh": "最初的敵對者",
+        "entry_level": 270,
+        "party_size_max": 3,
+        "difficulties": [
+            {
+                "tier": "easy",
+                "rewards": { "resolve": 0,   "battle_traces": 10,  "erion_fragment": 0 },
+                "order": 3
+            },
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 15,  "battle_traces": 40,  "erion_fragment": 0 },
+                "order": 13
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 120, "battle_traces": 180, "erion_fragment": 30 },              
+                "order": 54
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 120, "battle_traces": 180, "erion_fragment": 30 },              
+                "order": 57
+            },
+            {
+                "tier": "extreme",
+                "rewards": { "resolve": 500, "battle_traces": 540, "erion_fragment": 240 },
+                "order": 81
+            }
+        ]
+    },
+    {
+        "id": "kaling",
+        "name": "Kaling",
+        "name_zh": "咖凌",
+        "entry_level": 275,
+        "party_size_max": 6,
+        "difficulties": [
+            {
+                "tier": "easy",
+                "rewards": { "resolve": 0,    "battle_traces": 20,   "erion_fragment": 0 },
+                "order": 11
+            },
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 20,   "battle_traces": 80,   "erion_fragment": 0 },
+                "order": 22
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 160,  "battle_traces": 240,  "erion_fragment": 60 },
+                "order": 51
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 160,  "battle_traces": 240,  "erion_fragment": 60 },
+                "order": 56
+            },
+            {
+                "tier": "extreme",
+                "rewards": { "resolve": 1200, "battle_traces": 1440, "erion_fragment": 480 },
+                "order": 91
+            }
+        ]               
+    },
+    {
+        "id": "radiant_malefic_star",
+        "name": "Radiant Malefic Star",
+        "name_zh": "燦爛的凶星",
+        "entry_level": 280,
+        "party_size_max": 3,
+        "difficulties": [
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 20,  "battle_traces": 60,  "erion_fragment": 0 },
+                "order": 21
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 380, "battle_traces": 240, "erion_fragment": 90 },
+                "order": 58
+            }
+        ]
+    },
+    {
+        "id": "limbo",
+        "name": "Limbo",
+        "name_zh": "林波",
+        "entry_level": 285,
+        "party_size_max": 3,
+        "difficulties": [
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 120, "battle_traces": 80,  "erion_fragment": 0 },
+                "order": 41
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 360, "battle_traces": 240, "erion_fragment": 60 },
+                "order": 59
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 360, "battle_traces": 240, "erion_fragment": 60 },
+                "order": 59
+            }
+        ]
+    },
+    {
+        "id": "baldrix",
+        "name": "Baldrix",
+        "name_zh": "巴德利斯",
+        "entry_level": 290,
+        "party_size_max": 3,
+        "difficulties": [
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 150, "battle_traces": 80,  "erion_fragment": 0 },
+                "order": 52
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 450, "battle_traces": 240, "erion_fragment": 120 },
+                "order": 61
+            },
+            {
+                "tier": "destiny",
+                "rewards": { "resolve": 450, "battle_traces": 240, "erion_fragment": 120 },
+                "order": 61
+            }
+        ]
+    },
+    {
+        "id": "jupiter",
+        "name": "Jupiter",
+        "name_zh": "尤比太",
+        "entry_level": 295,
+        "party_size_max": 3,
+        "difficulties": [
+            {
+                "tier": "normal",
+                "rewards": { "resolve": 160, "battle_traces": 210, "erion_fragment": 45 },
+                "order": 55
+            },
+            {
+                "tier": "hard",
+                "rewards": { "resolve": 500, "battle_traces": 630, "erion_fragment": 360 },
+                "order": 92
+            }
+        ]
+    }
+]

@@ -1,0 +1,44 @@
+[
+    {
+        "id": "easy",
+        "tier": "Easy",
+        "tier_zh": "簡單",
+        "color": "#3c4049",
+        "textColor": "#e2e5ea"
+    },
+    {
+        "id": "normal",
+        "tier": "Normal",
+        "tier_zh": "普通",
+        "color": "#2c5f9e",
+        "textColor": "#eef4fb"
+    },
+    {
+        "id": "hard",
+        "tier": "Hard",
+        "tier_zh": "困難",
+        "color": "#8a2342",
+        "textColor": "#f5cdd9"
+    },
+    {
+        "id": "chaos",
+        "tier": "Chaos",
+        "tier_zh": "混沌",
+        "color": "#d3c79f",
+        "textColor": "#4a3a1e"
+    },
+    {
+        "id": "destiny",
+        "tier": "destiny",
+        "tier_zh": "命運",
+        "color": "#e8e8ea",
+        "textColor": "#666666"
+    },
+    {
+        "id": "extreme",
+        "tier": "Extreme",
+        "tier_zh": "極限",
+        "color": "#191317",
+        "textColor": "#ef5236"
+    }
+]

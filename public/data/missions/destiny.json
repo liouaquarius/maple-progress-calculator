@@ -1,0 +1,42 @@
+[
+    {
+        "stage": 1,
+        "missions": [
+            {
+                "mission": 1,
+                "cost": { "resolve": 2000 },
+                "requirement": { "boss": "chosen_seren" }
+            },
+            {
+                "mission": 2,
+                "cost": { "resolve": 2500 },
+                "requirement": { "boss": "watcher_kalos" }
+            },
+            {
+                "mission": 3,
+                "cost": { "resolve": 3000 },
+                "requirement": { "boss": "kaling" }
+            }
+        ]
+    },
+    {
+        "stage": 2,
+        "missions": [
+            {
+                "mission": 1,
+                "cost": { "resolve": 10000 },
+                "requirement": { "boss": "first_adversary" }
+            },
+            {
+                "mission": 2,
+                "cost": { "resolve": 12500 },
+                "requirement": { "boss": "limbo" }
+            },
+            {
+                "mission": 3,
+                "cost": { "resolve": 15000 },
+                "requirement": { "boss": "baldrix" }
+            }
+        ]
+    }
+]

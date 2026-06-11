@@ -1,0 +1,17 @@
+[
+    {
+        "id": "resolve",
+        "name": "Adversary's Resolve",
+        "name_zh": "敵對者的決心"
+    },
+    {
+        "id": "battle_traces",
+        "name": "Fierce Battle Traces",
+        "name_zh": "猛烈的戰鬥痕跡"
+    },
+    {
+        "id": "erion_fragment",
+        "name": "Erion's Fragments",
+        "name_zh": "俄里翁的碎片"
+    }
+]
