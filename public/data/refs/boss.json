@@ -1,219 +1,512 @@
 [
-    {
-        "id": "chosen_seren",
-        "name": "Chosen Seren",
-        "name_zh": "受選的賽蓮",
+  {
+    "id": "zakum",
+    "name": "Zakum",
+    "name_zh": "殘暴炎魔",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 90,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "papulatus",
+    "name": "Papulatus",
+    "name_zh": "拉圖斯",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 190,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "magnus",
+    "name": "Magnus",
+    "name_zh": "梅格耐斯",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "entry_level": 175,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "hilla",
+    "name": "Hilla",
+    "name_zh": "希拉",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "entry_level": 170,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "pierre",
+    "name": "Pierre",
+    "name_zh": "比艾樂",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 180,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "von_bon",
+    "name": "Von Bon",
+    "name_zh": "斑斑",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 180,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "bloody_queen",
+    "name": "Bloody Queen",
+    "name_zh": "血腥皇后",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 180,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "vellum",
+    "name": "Vellum",
+    "name_zh": "貝倫",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 180,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "pink_bean",
+    "name": "Pink Bean",
+    "name_zh": "粉豆",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "entry_level": 170,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "cygnus",
+    "name": "Cygnus",
+    "name_zh": "西格諾斯",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "entry_level": 165,
+        "party_size_max": 6
+      },
+      {
+        "tier": "normal",
+        "entry_level": 165,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "princess_no",
+    "name": "Princess No",
+    "name_zh": "濃姬",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 180,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "suu",
+    "name": "Suu",
+    "name_zh": "史烏",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 190,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 190,
+        "party_size_max": 6
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 190,
+        "party_size_max": 2
+      }
+    ]
+  },
+  {
+    "id": "damien",
+    "name": "Damien",
+    "name_zh": "戴米安",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 190,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 190,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "guardian_angel_slime",
+    "name": "Guardian Angel Slime",
+    "name_zh": "守護天使綠水靈",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 210,
+        "party_size_max": 6
+      },
+      {
+        "tier": "chaos",
+        "entry_level": 210,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "lucid",
+    "name": "Lucid",
+    "name_zh": "露希妲",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "entry_level": 220,
+        "party_size_max": 6
+      },
+      {
+        "tier": "normal",
+        "entry_level": 220,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 220,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "will",
+    "name": "Will",
+    "name_zh": "威爾",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "entry_level": 235,
+        "party_size_max": 6
+      },
+      {
+        "tier": "normal",
+        "entry_level": 235,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 235,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "dusk",
+    "name": "Dusk",
+    "name_zh": "戴斯克",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 245,
+        "party_size_max": 6
+      },
+      {
+        "tier": "chaos",
+        "entry_level": 245,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "jin_hilla",
+    "name": "Jin Hilla",
+    "name_zh": "真希拉",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 250,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 250,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "malitia",
+    "name": "Malitia",
+    "name_zh": "瑪麗西亞",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 250,
+        "party_size_max": 3
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 250,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "dunkel",
+    "name": "Dunkel",
+    "name_zh": "頓凱爾",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 255,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 255,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "black_mage",
+    "name": "Black Mage",
+    "name_zh": "黑魔法師",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "entry_level": 255,
+        "party_size_max": 6
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 255,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "chosen_seren",
+    "name": "Chosen Seren",
+    "name_zh": "受選的賽蓮",
+    "difficulties": [
+      {
+        "tier": "normal",
         "entry_level": 260,
-        "party_size_max": 6,
-        "difficulties": [
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 0,  "battle_traces": 6,   "erion_fragment": 0 },
-                "order": 1
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 6,  "battle_traces": 15,  "erion_fragment": 0 },
-                "order": 4
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 6,  "battle_traces": 15,  "erion_fragment": 0 },
-                "order": 23
-            },
-            {
-                "tier": "extreme",
-                "rewards": { "resolve": 80, "battle_traces": 180, "erion_fragment": 30 },
-                "order": 53
-            }
-        ]
-    },
-    {
-        "id": "watcher_kalos",
-        "name": "Watcher Kalos",
-        "name_zh": "監視者卡洛斯",
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 260,
+        "party_size_max": 6
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 260,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "watcher_kalos",
+    "name": "Watcher Kalos",
+    "name_zh": "監視者卡洛斯",
+    "difficulties": [
+      {
+        "tier": "easy",
         "entry_level": 265,
-        "party_size_max": 6,
-        "difficulties": [
-            {
-                "tier": "easy",
-                "rewards": { "resolve": 0,   "battle_traces": 6,   "erion_fragment": 0 },
-                "order": 2
-            },
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 10,  "battle_traces": 30,  "erion_fragment": 0 },
-                "order": 12
-            },
-            {
-                "tier": "chaos",
-                "rewards": { "resolve": 70,  "battle_traces": 100, "erion_fragment": 0 },
-                "order": 31
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 70,  "battle_traces": 100, "erion_fragment": 0 },
-                "order": 31
-            },
-            {
-                "tier": "extreme",
-                "rewards": { "resolve": 400, "battle_traces": 500, "erion_fragment": 180 },
-                "order": 71
-            }
-        ]
-    },
-    {
-        "id": "first_adversary",
-        "name": "First Adversary",
-        "name_zh": "最初的敵對者",
+        "party_size_max": 6
+      },
+      {
+        "tier": "normal",
+        "entry_level": 265,
+        "party_size_max": 6
+      },
+      {
+        "tier": "chaos",
+        "entry_level": 265,
+        "party_size_max": 6
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 265,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "first_adversary",
+    "name": "First Adversary",
+    "name_zh": "最初的敵對者",
+    "difficulties": [
+      {
+        "tier": "easy",
         "entry_level": 270,
-        "party_size_max": 3,
-        "difficulties": [
-            {
-                "tier": "easy",
-                "rewards": { "resolve": 0,   "battle_traces": 10,  "erion_fragment": 0 },
-                "order": 3
-            },
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 15,  "battle_traces": 40,  "erion_fragment": 0 },
-                "order": 13
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 120, "battle_traces": 180, "erion_fragment": 30 },              
-                "order": 54
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 120, "battle_traces": 180, "erion_fragment": 30 },              
-                "order": 57
-            },
-            {
-                "tier": "extreme",
-                "rewards": { "resolve": 500, "battle_traces": 540, "erion_fragment": 240 },
-                "order": 81
-            }
-        ]
-    },
-    {
-        "id": "kaling",
-        "name": "Kaling",
-        "name_zh": "咖凌",
+        "party_size_max": 3
+      },
+      {
+        "tier": "normal",
+        "entry_level": 270,
+        "party_size_max": 3
+      },
+      {
+        "tier": "hard",
+        "entry_level": 270,
+        "party_size_max": 3
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 270,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "kaling",
+    "name": "Kaling",
+    "name_zh": "咖凌",
+    "difficulties": [
+      {
+        "tier": "easy",
         "entry_level": 275,
-        "party_size_max": 6,
-        "difficulties": [
-            {
-                "tier": "easy",
-                "rewards": { "resolve": 0,    "battle_traces": 20,   "erion_fragment": 0 },
-                "order": 11
-            },
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 20,   "battle_traces": 80,   "erion_fragment": 0 },
-                "order": 22
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 160,  "battle_traces": 240,  "erion_fragment": 60 },
-                "order": 51
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 160,  "battle_traces": 240,  "erion_fragment": 60 },
-                "order": 56
-            },
-            {
-                "tier": "extreme",
-                "rewards": { "resolve": 1200, "battle_traces": 1440, "erion_fragment": 480 },
-                "order": 91
-            }
-        ]               
-    },
-    {
-        "id": "radiant_malefic_star",
-        "name": "Radiant Malefic Star",
-        "name_zh": "燦爛的凶星",
+        "party_size_max": 6
+      },
+      {
+        "tier": "normal",
+        "entry_level": 275,
+        "party_size_max": 6
+      },
+      {
+        "tier": "hard",
+        "entry_level": 275,
+        "party_size_max": 6
+      },
+      {
+        "tier": "extreme",
+        "entry_level": 275,
+        "party_size_max": 6
+      }
+    ]
+  },
+  {
+    "id": "radiant_malefic_star",
+    "name": "Radiant Malefic Star",
+    "name_zh": "燦爛的凶星",
+    "difficulties": [
+      {
+        "tier": "normal",
         "entry_level": 280,
-        "party_size_max": 3,
-        "difficulties": [
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 20,  "battle_traces": 60,  "erion_fragment": 0 },
-                "order": 21
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 380, "battle_traces": 240, "erion_fragment": 90 },
-                "order": 58
-            }
-        ]
-    },
-    {
-        "id": "limbo",
-        "name": "Limbo",
-        "name_zh": "林波",
+        "party_size_max": 3
+      },
+      {
+        "tier": "hard",
+        "entry_level": 280,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "limbo",
+    "name": "Limbo",
+    "name_zh": "林波",
+    "difficulties": [
+      {
+        "tier": "normal",
         "entry_level": 285,
-        "party_size_max": 3,
-        "difficulties": [
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 120, "battle_traces": 80,  "erion_fragment": 0 },
-                "order": 41
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 360, "battle_traces": 240, "erion_fragment": 60 },
-                "order": 59
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 360, "battle_traces": 240, "erion_fragment": 60 },
-                "order": 59
-            }
-        ]
-    },
-    {
-        "id": "baldrix",
-        "name": "Baldrix",
-        "name_zh": "巴德利斯",
+        "party_size_max": 3
+      },
+      {
+        "tier": "hard",
+        "entry_level": 285,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "baldrix",
+    "name": "Baldrix",
+    "name_zh": "巴德利斯",
+    "difficulties": [
+      {
+        "tier": "normal",
         "entry_level": 290,
-        "party_size_max": 3,
-        "difficulties": [
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 150, "battle_traces": 80,  "erion_fragment": 0 },
-                "order": 52
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 450, "battle_traces": 240, "erion_fragment": 120 },
-                "order": 61
-            },
-            {
-                "tier": "destiny",
-                "rewards": { "resolve": 450, "battle_traces": 240, "erion_fragment": 120 },
-                "order": 61
-            }
-        ]
-    },
-    {
-        "id": "jupiter",
-        "name": "Jupiter",
-        "name_zh": "尤比太",
+        "party_size_max": 3
+      },
+      {
+        "tier": "hard",
+        "entry_level": 290,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "jupiter",
+    "name": "Jupiter",
+    "name_zh": "尤比太",
+    "difficulties": [
+      {
+        "tier": "normal",
         "entry_level": 295,
-        "party_size_max": 3,
-        "difficulties": [
-            {
-                "tier": "normal",
-                "rewards": { "resolve": 160, "battle_traces": 210, "erion_fragment": 45 },
-                "order": 55
-            },
-            {
-                "tier": "hard",
-                "rewards": { "resolve": 500, "battle_traces": 630, "erion_fragment": 360 },
-                "order": 92
-            }
-        ]
-    }
+        "party_size_max": 3
+      },
+      {
+        "tier": "hard",
+        "entry_level": 295,
+        "party_size_max": 3
+      }
+    ]
+  },
+  {
+    "id": "kai",
+    "name": "Kai",
+    "name_zh": "凱伊",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "entry_level": 270,
+        "party_size_max": 1
+      },
+      {
+        "tier": "hard",
+        "entry_level": 280,
+        "party_size_max": 1
+      }
+    ]
+  }
 ]

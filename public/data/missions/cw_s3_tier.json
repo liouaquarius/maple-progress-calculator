@@ -1,0 +1,64 @@
+[
+  {
+    "tier": "bronze",
+    "name": "Bronze",
+    "name_zh": "青銅",
+    "challengers_points": 5000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "silver",
+    "name": "Silver",
+    "name_zh": "白銀",
+    "challengers_points": 10000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "gold",
+    "name": "Gold",
+    "name_zh": "黃金",
+    "challengers_points": 15000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "platinum",
+    "name": "Platinum",
+    "name_zh": "白金",
+    "challengers_points": 20000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "emerald",
+    "name": "Emerald",
+    "name_zh": "翡翠",
+    "challengers_points": 30000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "diamond",
+    "name": "Diamond",
+    "name_zh": "鑽石",
+    "challengers_points": 40000,
+    "boss_clear_require": null
+  },
+  {
+    "tier": "master",
+    "name": "Master",
+    "name_zh": "大師",
+    "challengers_points": 65000,
+    "boss_clear_require": {
+      "difficulty": "normal",
+      "boss": "kai"
+    }
+  },
+  {
+    "tier": "challenger",
+    "name": "Challenger",
+    "name_zh": "挑戰者",
+    "challengers_points": 90000,
+    "boss_clear_require": {
+      "difficulty": "hard",
+      "boss": "kai"
+    }
+  }
+]

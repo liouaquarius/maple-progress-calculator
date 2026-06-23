@@ -10,9 +10,10 @@ const props = defineProps({
   difficulty: { type: String, default: '' }, // difficulty id
   partySize: { type: Number, default: null }, // 有值才顯示人數
   size: { type: Number, default: 20 },
+  name: { type: String, default: '' }, // 顯示名覆寫（bossMap 查無此 boss 時用，如 CW S3 的 Kai）
 })
 
-const name = computed(() => bossMap.value[props.boss]?.name_zh ?? props.boss)
+const name = computed(() => props.name || bossMap.value[props.boss]?.name_zh || props.boss)
 </script>
 
 <template>

@@ -4,11 +4,14 @@ import { store } from './store.js'
 import InputView from './views/InputView.vue'
 import AstraView from './views/AstraView.vue'
 import DestinyView from './views/DestinyView.vue'
+import CwS3View from './views/CwS3View.vue'
+import NavTab from './components/NavTab.vue'
 
 const tabs = [
   { id: 'input', label: '輸入', comp: InputView },
   { id: 'astra', label: '阿斯特拉副武器', comp: AstraView },
   { id: 'destiny', label: '命運武器', comp: DestinyView },
+  { id: 'cws3', label: '挑戰者 S3', comp: CwS3View, badge: 'EVENT' },
 ]
 const active = ref('input')
 </script>
@@ -17,14 +20,14 @@ const active = ref('input')
   <header class="navbar">
     <span class="title">阿斯特拉 / 命運 任務進度計算器</span>
     <nav>
-      <button
+      <NavTab
         v-for="t in tabs"
         :key="t.id"
-        :class="{ on: active === t.id }"
-        @click="active = t.id"
-      >
-        {{ t.label }}
-      </button>
+        :label="t.label"
+        :active="active === t.id"
+        :badge="t.badge"
+        @select="active = t.id"
+      />
     </nav>
   </header>
 
@@ -43,10 +46,4 @@ const active = ref('input')
 }
 .title { font-weight: bold; }
 nav { display: flex; gap: 0.4rem; }
-nav button {
-  background: transparent; color: #aab; border: 1px solid transparent;
-  border-radius: 6px; padding: 0.35rem 0.9rem; cursor: pointer; font-size: 0.95rem;
-}
-nav button:hover { background: #2a2a33; }
-nav button.on { background: #3a4a6a; color: #fff; }
 </style>

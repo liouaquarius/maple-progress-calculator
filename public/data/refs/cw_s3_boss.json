@@ -1,0 +1,278 @@
+[
+  {
+    "id": "cygnus",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 100
+      },
+      {
+        "tier": "normal",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "zakum",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "hilla",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "pink_bean",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "pierre",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "von_bon",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "bloody_queen",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 100
+      }
+    ]
+  },
+  {
+    "id": "magnus",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "challengers_points": 200
+      }
+    ]
+  },
+  {
+    "id": "vellum",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 200
+      }
+    ]
+  },
+  {
+    "id": "papulatus",
+    "difficulties": [
+      {
+        "tier": "chaos",
+        "challengers_points": 300
+      }
+    ]
+  },
+  {
+    "id": "suu",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 400
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 1500
+      }
+    ]
+  },
+  {
+    "id": "damien",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 400
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 1500
+      }
+    ]
+  },
+  {
+    "id": "guardian_angel_slime",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 500
+      },
+      {
+        "tier": "chaos",
+        "challengers_points": 2500
+      }
+    ]
+  },
+  {
+    "id": "lucid",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 500
+      },
+      {
+        "tier": "normal",
+        "challengers_points": 1000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 2000
+      }
+    ]
+  },
+  {
+    "id": "will",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 500
+      },
+      {
+        "tier": "normal",
+        "challengers_points": 1000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 2500
+      }
+    ]
+  },
+  {
+    "id": "dusk",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 1000
+      },
+      {
+        "tier": "chaos",
+        "challengers_points": 2500
+      }
+    ]
+  },
+  {
+    "id": "dunkel",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 1000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 3000
+      }
+    ]
+  },
+  {
+    "id": "jin_hilla",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 2000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 3000
+      }
+    ]
+  },
+  {
+    "id": "kai",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 5000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 8000
+      }
+    ]
+  },
+  {
+    "id": "black_mage",
+    "difficulties": [
+      {
+        "tier": "hard",
+        "challengers_points": 6000
+      }
+    ]
+  },
+  {
+    "id": "chosen_seren",
+    "difficulties": [
+      {
+        "tier": "normal",
+        "challengers_points": 6000
+      },
+      {
+        "tier": "hard",
+        "challengers_points": 7000
+      }
+    ]
+  },
+  {
+    "id": "watcher_kalos",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 7000
+      },
+      {
+        "tier": "normal",
+        "challengers_points": 9000
+      }
+    ]
+  },
+  {
+    "id": "first_adversary",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 7000
+      },
+      {
+        "tier": "normal",
+        "challengers_points": 9000
+      }
+    ]
+  },
+  {
+    "id": "kaling",
+    "difficulties": [
+      {
+        "tier": "easy",
+        "challengers_points": 9000
+      }
+    ]
+  }
+]
