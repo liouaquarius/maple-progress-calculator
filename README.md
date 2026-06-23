@@ -1,6 +1,6 @@
-# 楓之谷 阿斯特拉 / 命運 進度計算器
+# 楓之谷 阿斯特拉 / 命運 / 挑戰者 S3 進度計算器
 
-計算楓之谷「阿斯特拉副武器」與「命運武器」任務進度的靜態網頁工具。輸入角色等級、當前任務進度與每週可攻略的 Boss，即可估算每週產出、各階段／任務的達成日期、最小浪費的攻略順序，以及命運的「單人通關」門檻檢定。
+計算楓之谷「阿斯特拉副武器」「命運武器」任務進度，以及「挑戰者世界 S3」段位達成需求的靜態網頁工具。輸入角色等級、當前任務進度與每週可攻略的 Boss，即可估算每週產出、各階段／任務的達成日期、最小浪費的攻略順序、命運的「單人通關」門檻檢定，並雙向對照挑戰者世界的段位與所需等級／Boss。
 
 以 Vue 3 + Vite 開發，部署於 GitHub Pages（純前端、無後端）。
 
@@ -12,6 +12,7 @@
   - 進度條（含各 mission 邊界刻度、到目標日的預估段、邊界到達日）。
   - 各階段／任務的達成日期表（Boss 攻略以每週四計算；碎片有每日獲取，故逐日模擬）。
   - 命運的「最小浪費攻略順序」建議，與「單人通關需求」卡關檢定。
+- **挑戰者 S3 頁**：段位 ↔ 需求雙向對照。① 選目標段位 → 各等級（可切換「每 5 等明細／變化節點」兩種檢視）所需完成的 Boss；② 輸入目標等級＋計畫完成的最高 Boss → 推算可達段位。計分含等級累加、Boss 向下累計、Kai 段位門檻與入場等級限制。
 - **持久化**：輸入內容存於 localStorage，重整後保留；可一鍵清除還原預設。
 
 ## 本機開發
@@ -40,16 +41,18 @@ npm run preview  # 本機預覽正式版
 ```
 public/
   data/
-    refs/      item / boss(含 difficulties:tier+rewards+order) / difficulty / area(含 daily)
-    missions/  destiny(含 mission.requirement) / astra
+    refs/      item / boss(身分主檔) / boss_reward(astra・命運獎勵) / difficulty / area(含 daily)
+               cw_s3_boss(挑戰者 S3 得分) / cw_s3_level(等級得分)
+    missions/  destiny(含 mission.requirement) / astra / cw_s3_tier(段位需求)
   icons/       boss / item / area
 src/
-  views/       InputView / AstraView / DestinyView
-  components/   ProgressBar / ScheduleTable / StatCard / BossSelector
-               DifficultyPicker / DifficultyBadge / BossBadge / InputSummary / Icon
+  views/       InputView / AstraView / DestinyView / CwS3View
+  components/   ProgressBar / ScheduleTable / StatCard / BossSelector / NavTab
+               DifficultyPicker / DifficultyBadge / BossBadge / CwBossReq / InputSummary / Icon
   lib/         calc.js（均分、產出、能力 order）/ schedule.js（達成日、卡關 gate）
+               cw.js（挑戰者 S3 計分與雙向對照）
   store.js     全域共享狀態（reactive）+ localStorage 持久化
-  data/load.js 載入 public/data 的 JSON
+  data/load.js 載入 public/data 的 JSON，並依 id join boss 身分＋各系統獎勵
   utils/       icon / format / itemColors
 ```
 
@@ -57,9 +60,12 @@ src/
 
 遊戲數值集中在 `public/data/`，皆以英文 `id` 互相參照：
 
-- **boss.json**：每隻 Boss 的 `difficulties`（`tier` + `rewards` 整隊總量 + 全域 `order` 強度排名）；命運門檻 Boss 另含 `tier: "destiny"` 標記其需求 `order`。
+- **boss.json**：Boss 身分主檔——`id` / `name` / `name_zh` / 每難度的 `entry_level`（入場等級）與 `party_size_max`。所有系統的 Boss 皆以此為唯一身分來源。
+- **boss_reward.json**：阿斯特拉／命運的每週獎勵——`difficulties`（`tier` + `rewards` 整隊總量 + 全域 `order` 強度排名）；命運門檻 Boss 另含 `tier: "destiny"`。
+- **cw_s3_boss.json** / **cw_s3_level.json**：挑戰者 S3 的 Boss 得分（每難度 `challengers_points`）與等級累加得分。
+- **missions/cw_s3_tier.json**：各段位達標分數與 `boss_clear_require`（Kai 通關門檻）。
 - **difficulty.json**：難度中文名與配色（`color` / `textColor`）。
 - **area.json**：每日區域與 `daily` 碎片量。
 - **missions/destiny.json**、**astra.json**：各任務的 `cost`（消耗量）；命運另含 `requirement.boss`（需單人通關的 Boss）。
 
-改數值只需編輯這些 JSON，前端會自動以 `id` join 出顯示與計算。
+改數值只需編輯這些 JSON，前端 `load.js` 會自動以 `id` join 出 Boss 身分＋各系統獎勵供顯示與計算。
