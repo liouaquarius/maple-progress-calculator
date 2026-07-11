@@ -1,40 +1,35 @@
 <script setup>
-import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { store } from './store.js'
-import InputView from './views/InputView.vue'
-import AstraView from './views/AstraView.vue'
-import DestinyView from './views/DestinyView.vue'
-import CwS3View from './views/CwS3View.vue'
+import { nav } from './router.js'
 import NavTab from './components/NavTab.vue'
+import NavGroup from './components/NavGroup.vue'
 
-const tabs = [
-  { id: 'input', label: '輸入', comp: InputView },
-  { id: 'astra', label: '阿斯特拉副武器', comp: AstraView },
-  { id: 'destiny', label: '命運武器', comp: DestinyView },
-  { id: 'cws3', label: '挑戰者 S3', comp: CwS3View, badge: 'EVENT' },
-]
-const active = ref('input')
+const route = useRoute()
+const router = useRouter()
 </script>
 
 <template>
   <header class="navbar">
-    <span class="title">阿斯特拉 / 命運 任務進度計算器</span>
+    <span class="title">楓之谷 進度計算器</span>
     <nav>
-      <NavTab
-        v-for="t in tabs"
-        :key="t.id"
-        :label="t.label"
-        :active="active === t.id"
-        :badge="t.badge"
-        @select="active = t.id"
-      />
+      <template v-for="entry in nav" :key="entry.label">
+        <NavTab
+          v-if="entry.path"
+          :label="entry.label"
+          :active="route.path === entry.path"
+          :badge="entry.badge ?? ''"
+          @select="router.push(entry.path)"
+        />
+        <NavGroup v-else :label="entry.label" :items="entry.items" />
+      </template>
     </nav>
   </header>
 
   <main>
     <p v-if="store.loading" class="status">資料載入中…</p>
     <p v-else-if="store.error" class="error">{{ store.error }}</p>
-    <component v-else :is="tabs.find((t) => t.id === active).comp" />
+    <router-view v-else />
   </main>
 </template>
 
