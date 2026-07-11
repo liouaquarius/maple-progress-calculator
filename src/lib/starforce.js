@@ -134,7 +134,7 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
 
   const emptyBreakdown = { forge: 0, restoreMeso: 0, scroll: 0, itemMeso: 0, total: 0 }
   if (startStar >= targetStar) {
-    return { expectedMeso: 0, expectedItems: 0, breakdown: emptyBreakdown, levelCap: cap, converged: true, policy: [] }
+    return { expectedMeso: 0, expectedItems: 0, expectedAttempts: 0, breakdown: emptyBreakdown, levelCap: cap, converged: true, policy: [], cells: new Map() }
   }
 
   const restartStar = sf.repair.restart.start_star
@@ -249,6 +249,7 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
         if (s.star !== k && s.star < targetStar) A[i][idx(s.star)] -= s.prob
       }
       rewards.forEach((rw, j) => {
+        if (rw === 'attempts') { bs[j][i] = 1; return } // 每個動作計一次
         let v = rw === 'meso' ? mesoOf(c.base) : c.base[rw]
         for (const s of c.successors) v += s.prob * (rw === 'meso' ? mesoOf(s.add) : s.add[rw])
         bs[j][i] = v
@@ -281,14 +282,15 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
     for (let k = lo; k < targetStar; k++) G[k] = g[idx(k)]
   }
 
-  // 最優策略下的分項期望：同一係數矩陣、多組 RHS 一次解
-  const { A, bs } = buildSystem(['forge', 'restoreMeso', 'scroll', 'items'])
-  const [forgeF, restoreF, scrollF, itemsF] = gaussianSolveMulti(A, bs)
+  // 最優策略下的分項期望：同一係數矩陣、多組 RHS 一次解（attempts = 期望動作次數，供模擬估算預算）
+  const { A, bs } = buildSystem(['forge', 'restoreMeso', 'scroll', 'items', 'attempts'])
+  const [forgeF, restoreF, scrollF, itemsF, attemptsF] = gaussianSolveMulti(A, bs)
   const at = (F) => F[idx(startStar)]
   const forge = at(forgeF)
   const restoreMeso = at(restoreF)
   const scroll = at(scrollF)
   const expectedItems = at(itemsF)
+  const expectedAttempts = at(attemptsF)
   const itemMeso = expectedItems * V
   const total = forge + restoreMeso + scroll + itemMeso
 
@@ -299,9 +301,60 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
   return {
     expectedMeso: G[startStar],
     expectedItems,
+    expectedAttempts,
     breakdown: { forge, restoreMeso, scroll, itemMeso, total },
     levelCap: cap,
     converged,
     policy,
+    cells: chosen, // star → cell（完整轉移核：base 費用 + successors 分支），供模擬器使用
   }
+}
+
+// ── 蒙地卡羅模擬（花費分布）────────────────────────────
+// 沿 solveStarforce 的最優策略逐步抽樣。固定 seed 使同輸入結果可重現。
+// 回傳 { solved, runOne }；runOne() 執行一趟完整強化，回傳
+// { cost: 總花費（折算 meso，含道具市價）, destroys: 破壞次數 }，
+// 由呼叫端自行分批呼叫以免阻塞 UI（單趟步數以 solved.expectedAttempts 估算）。
+
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+export function createStarforceSimulator(sf, range, prices = {}, options = {}, seed = 20260711) {
+  const solved = solveStarforce(sf, range, prices, options)
+  const V = prices.itemValue ?? 0
+  const rand = mulberry32(seed)
+  const addMeso = (x) => x.forge + x.restoreMeso + x.scroll + x.items * V
+
+  const runOne = () => {
+    let k = range.startStar
+    let cost = 0
+    let destroys = 0
+    while (k < range.targetStar) {
+      const c = solved.cells.get(k)
+      cost += addMeso(c.base)
+      let u = rand()
+      let next = k // 機率浮點誤差殘餘 → 視為維持
+      for (const s of c.successors) {
+        if (u < s.prob) {
+          cost += addMeso(s.add)
+          // 只有破壞分支帶救回費用（restart 的道具 / restore 的道具＋楓幣）
+          if (s.add.items > 0 || s.add.restoreMeso > 0) destroys++
+          next = s.star
+          break
+        }
+        u -= s.prob
+      }
+      k = next
+    }
+    return { cost, destroys }
+  }
+
+  return { solved, runOne }
 }

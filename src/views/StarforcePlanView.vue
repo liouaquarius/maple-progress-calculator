@@ -1,9 +1,9 @@
 <script setup>
 // 星力 — 強化策略計算：輸入裝等/起始/目標星與價格參數，
 // 由 solveStarforce（期望成本最小化）給出期望花費、分項與逐星建議動作。
-import { computed, watch } from 'vue'
+import { computed, watch, shallowRef, ref, onBeforeUnmount } from 'vue'
 import { store } from '../store.js'
-import { solveStarforce, boostedRates } from '../lib/starforce.js'
+import { solveStarforce, createStarforceSimulator, boostedRates } from '../lib/starforce.js'
 import { fmtInt, fmtMeso, fmtPct } from '../utils/format.js'
 
 const sf = computed(() => store.data.starforce)
@@ -74,7 +74,8 @@ watch(() => input.startStar, (v) => {
   if (v >= input.targetStar) input.targetStar = Math.min(v + 1, cap.value)
 })
 
-const solved = computed(() => {
+// 求解參數（solved 與模擬共用同一組，確保兩者對同一模型計算）
+const solverArgs = computed(() => {
   const guaranteedScrolls = []
   const additiveScrolls = []
   for (const r of activeScrollRows.value) {
@@ -83,19 +84,22 @@ const solved = computed(() => {
     if (f.kind === 'guaranteed') guaranteedScrolls.push({ star: r.n, price })
     else additiveScrolls.push({ maxStar: r.n, rate: f.rate, price })
   }
+  return {
+    range: { level: input.level, startStar: input.startStar, targetStar: input.targetStar },
+    prices: { itemValue: input.itemValue ?? 0, guaranteedScrolls, additiveScrolls },
+    options: {
+      safeguard: input.safeguard,
+      discount: vipTier.value?.pct
+        ? { costMultiplier: 1 - vipTier.value.pct / 100, maxStar: sf.value.discount.max_star }
+        : null,
+    },
+  }
+})
+
+const solved = computed(() => {
+  const { range, prices, options } = solverArgs.value
   try {
-    const result = solveStarforce(
-      sf.value,
-      { level: input.level, startStar: input.startStar, targetStar: input.targetStar },
-      { itemValue: input.itemValue ?? 0, guaranteedScrolls, additiveScrolls },
-      {
-        safeguard: input.safeguard,
-        discount: vipTier.value?.pct
-          ? { costMultiplier: 1 - vipTier.value.pct / 100, maxStar: sf.value.discount.max_star }
-          : null,
-      },
-    )
-    return { result, error: null }
+    return { result: solveStarforce(sf.value, range, prices, options), error: null }
   } catch (e) {
     return { result: null, error: e.message }
   }
@@ -154,6 +158,157 @@ const breakdownSegs = computed(() => {
     value: b[p.key],
     pct: (b[p.key] / b.total) * 100,
   }))
+})
+
+// ── 花費分布（蒙地卡羅模擬）────────────────────────────
+// 沿最優策略抽樣總花費；固定 seed 使同輸入結果可重現。
+// run 數依期望強化次數自動調整（總步數預算 2e7）；期望次數過高（如 29/30★）則不模擬。
+// 以 12ms 分塊執行避免阻塞 UI；輸入變更 debounce 300ms 後重跑，舊工作即時取消。
+const SIM_PCTS = [10, 25, 50, 75, 90, 99]
+const SIM_BINS = 50
+// 破壞次數分組（0/1/2/3/4+）：分布左側的峰谷即來自這些混合成分。
+// 有序量 → 單色 ordinal ramp（淺→深 = 少→多），已對 #232329 面板底驗證。
+const GROUP_COLORS = ['#b7d3f6', '#86b6ef', '#5598e7', '#2a78d6', '#1c5cab']
+const GROUP_LABELS = ['破壞 0 次', '1 次', '2 次', '3 次', '4 次以上']
+const sim = shallowRef(null) // null = 模擬中；{ skipped } 或結果物件
+const myCost = ref(null)
+let simTimer = 0
+let simJob = null
+
+const quantile = (a, q) => {
+  const pos = (a.length - 1) * q
+  const lo = Math.floor(pos)
+  return a[lo] + (a[Math.ceil(pos)] - a[lo]) * (pos - lo)
+}
+// 排序陣列中 ≤ x 的個數（二分搜）
+const countLE = (a, x) => {
+  let lo = 0
+  let hi = a.length
+  while (lo < hi) {
+    const m = (lo + hi) >> 1
+    if (a[m] <= x) lo = m + 1
+    else hi = m
+  }
+  return lo
+}
+
+const finishSim = (costs, destroys, res) => {
+  const runs = costs.length
+  const sorted = Float64Array.from(costs).sort()
+  const lo = sorted[0]
+  const hi = quantile(sorted, 0.99) // P99 截尾，避免極端尾巴壓扁主體
+  const nG = GROUP_COLORS.length
+  const groupShare = new Array(nG).fill(0)
+  for (let i = 0; i < runs; i++) groupShare[Math.min(destroys[i], nG - 1)]++
+  let bins = null
+  let maxCount = 0
+  if (hi > lo) {
+    const w = (hi - lo) / SIM_BINS
+    bins = Array.from({ length: SIM_BINS }, (_, b) => ({
+      total: 0,
+      parts: new Array(nG).fill(0), // 依破壞次數分組的堆疊
+      from: lo + w * b,
+      to: lo + w * (b + 1),
+    }))
+    for (let i = 0; i < runs; i++) {
+      if (costs[i] > hi) continue
+      const bin = bins[Math.min(SIM_BINS - 1, Math.floor((costs[i] - lo) / w))]
+      bin.total++
+      bin.parts[Math.min(destroys[i], nG - 1)]++
+    }
+    maxCount = Math.max(...bins.map((b) => b.total))
+  }
+  const posOf = (v) => Math.min(100, Math.max(0, ((v - lo) / (hi - lo)) * 100))
+  sim.value = {
+    runs,
+    samples: sorted,
+    groupShare: groupShare.map((c) => c / runs),
+    pcts: SIM_PCTS.map((p) => ({ p, value: quantile(sorted, p / 100) })),
+    meanPR: (countLE(sorted, res.expectedMeso) / runs) * 100,
+    expected: res.expectedMeso,
+    lo,
+    hi,
+    bins,
+    maxCount,
+    markers: bins
+      ? [
+          { label: 'P50', pos: posOf(quantile(sorted, 0.5)), dashed: false },
+          { label: 'P90', pos: posOf(quantile(sorted, 0.9)), dashed: false },
+          { label: '期望', pos: posOf(res.expectedMeso), dashed: true },
+        ]
+      : null,
+  }
+}
+
+// bin 的 hover 說明：區間、總占比、破壞次數明細（只列非零組）
+const binTitle = (b) => {
+  const head = `${fmtMeso(b.from)} ~ ${fmtMeso(b.to)}：${b.total} 次（${((b.total / sim.value.runs) * 100).toFixed(1)}%）`
+  const parts = b.parts
+    .map((c, g) => (c ? `${GROUP_LABELS[g]} ${c}` : null))
+    .filter(Boolean)
+    .join('、')
+  return parts ? `${head}\n${parts}` : head
+}
+
+const startSim = () => {
+  const res = solved.value.result
+  if (!res || !res.policy.length) return
+  const runs = Math.min(20000, Math.floor(2e7 / Math.max(1, res.expectedAttempts)))
+  if (runs < 2000) {
+    sim.value = { skipped: true, attempts: res.expectedAttempts }
+    return
+  }
+  const { range, prices, options } = solverArgs.value
+  const { runOne } = createStarforceSimulator(sf.value, range, prices, options)
+  const costs = new Float64Array(runs)
+  const destroys = new Uint16Array(runs)
+  const job = { cancelled: false }
+  simJob = job
+  let i = 0
+  const chunk = () => {
+    if (job.cancelled) return
+    const deadline = performance.now() + 12
+    while (i < runs && performance.now() < deadline) {
+      const r = runOne()
+      costs[i] = r.cost
+      destroys[i] = Math.min(r.destroys, 65535)
+      i++
+    }
+    if (i < runs) {
+      setTimeout(chunk, 0)
+      return
+    }
+    finishSim(costs, destroys, res)
+  }
+  chunk()
+}
+
+watch(
+  solved,
+  () => {
+    clearTimeout(simTimer)
+    if (simJob) simJob.cancelled = true
+    sim.value = null
+    simTimer = setTimeout(startSim, 300)
+  },
+  { immediate: true },
+)
+onBeforeUnmount(() => {
+  clearTimeout(simTimer)
+  if (simJob) simJob.cancelled = true
+})
+
+// 反查 PR：PR n ＝ n% 的模擬花費 ≤ 該值（越低越幸運）
+const myPR = computed(() => {
+  const s = sim.value
+  if (!s?.samples || !myCost.value || myCost.value <= 0) return null
+  return (countLE(s.samples, myCost.value) / s.runs) * 100
+})
+// 「你」在直方圖上的位置（超出 P99 時貼齊右緣）
+const myMarkerPos = computed(() => {
+  const s = sim.value
+  if (!s?.bins || !myCost.value || myCost.value <= 0) return null
+  return Math.min(100, Math.max(0, ((myCost.value - s.lo) / (s.hi - s.lo)) * 100))
 })
 
 // safeguard 有開但 15–17★ 都沒被採用時，說明「已評估、不划算」以免使用者疑惑
@@ -287,6 +442,73 @@ const safeguardSkipped = computed(
     </section>
 
     <section class="panel">
+      <h2>花費分布（模擬）</h2>
+      <p v-if="!sim" class="hint">模擬中…</p>
+      <p v-else-if="sim.skipped" class="hint">
+        此目標的期望強化次數約 {{ fmtInt(sim.attempts) }} 次/趟，模擬成本過高，不提供分布（上方期望值仍為精確解）。
+      </p>
+      <template v-else>
+        <div class="pcts">
+          <div v-for="x in sim.pcts" :key="x.p" class="stat small">
+            <span class="k">PR {{ x.p }}</span>
+            <span class="v">{{ fmtMeso(x.value) }}</span>
+          </div>
+        </div>
+
+        <template v-if="sim.bins">
+          <div class="histo">
+            <div class="bars">
+              <div
+                v-for="(b, i) in sim.bins"
+                :key="i"
+                class="bin"
+                :style="{ height: (b.total / sim.maxCount) * 100 + '%' }"
+                :title="binTitle(b)"
+              >
+                <template v-for="(p, g) in b.parts" :key="g">
+                  <div v-if="p" class="seg" :style="{ flexGrow: p, background: GROUP_COLORS[g] }" />
+                </template>
+              </div>
+            </div>
+            <div v-for="m in sim.markers" :key="m.label" class="marker" :class="{ dashed: m.dashed }" :style="{ left: m.pos + '%' }">
+              <span class="mlabel">{{ m.label }}</span>
+            </div>
+            <div v-if="myMarkerPos != null" class="marker my" :style="{ left: myMarkerPos + '%' }">
+              <span class="mlabel">你{{ myCost > sim.hi ? '（>P99）' : '' }}</span>
+            </div>
+          </div>
+          <div class="axis">
+            <span>{{ fmtMeso(sim.lo) }}</span>
+            <span>{{ fmtMeso(sim.hi) }}（P99 截尾）</span>
+          </div>
+          <div class="legend">
+            <span class="legend-title">顏色＝該趟破壞次數：</span>
+            <span v-for="(label, g) in GROUP_LABELS" :key="g" class="legend-item">
+              <i class="dot" :style="{ background: GROUP_COLORS[g] }" />{{ label }}
+              <span class="pct">{{ (sim.groupShare[g] * 100).toFixed(0) }}%</span>
+            </span>
+          </div>
+        </template>
+        <p v-else class="hint">此設定下花費恆為 {{ fmtMeso(sim.lo) }}，無分布。</p>
+
+        <p class="hint">
+          模擬 {{ fmtInt(sim.runs) }} 次（固定亂數種子）。PR n ＝ n% 的模擬花費 ≤ 該值。
+          期望值 {{ fmtMeso(sim.expected) }} 約在 <b>PR {{ sim.meanPR.toFixed(0) }}</b>——重尾分布下期望值高於中位數（PR 50）。
+          左側的多個峰對應「破壞 0 次／1 次／2 次…」的花費群（每次破壞的救回成本是一大塊固定量級）；破壞越多次成分彼此重疊，右側便融合成平滑長尾。
+        </p>
+
+        <label class="field">
+          我的花費（楓幣）
+          <input v-model.number="myCost" type="number" min="0" step="1000000" placeholder="輸入實際花費查 PR" />
+          <span v-if="myCost" class="preview">≈ {{ fmtMeso(myCost) }}</span>
+        </label>
+        <p v-if="myPR != null" class="mypr">
+          你的花費 ≈ <b>PR {{ myPR.toFixed(1) }}</b>：約 {{ (100 - myPR).toFixed(1) }}% 的模擬花費比你多（PR 越低越幸運）。
+        </p>
+      </template>
+    </section>
+
+    <section class="panel">
       <h2>逐星建議</h2>
       <p v-if="safeguardSkipped" class="hint">防止破壞已納入評估，但在目前價格參數下不划算，各星皆未採用。</p>
       <p v-if="policyRows.some((p) => p.belowStart)" class="hint">
@@ -365,6 +587,28 @@ select { width: auto; }
 .breakdown .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.3rem; }
 .breakdown .pct { color: #778; font-size: 0.75rem; margin-left: 0.15rem; }
 .hint { color: #888; font-size: 0.8rem; margin: 0.2rem 0 0.6rem; }
+/* 花費分布：百分位卡、直方圖（div bar + 參考線）、反查 PR */
+.pcts { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.stat.small { min-width: 6.5rem; padding: 0.35rem 0.7rem; }
+.stat.small .v { font-size: 1rem; }
+.histo { position: relative; max-width: 640px; height: 132px; padding-top: 16px; margin-top: 0.4rem; }
+.bars { display: flex; align-items: flex-end; gap: 1px; height: 100%; border-bottom: 1px solid #383835; }
+/* 每根 bin 內以破壞次數堆疊（column-reverse：0 次在底、次數越多越上層） */
+.bin { flex: 1; display: flex; flex-direction: column-reverse; border-radius: 2px 2px 0 0; overflow: hidden; }
+.bin .seg { flex-basis: 0; }
+.marker { position: absolute; top: 0; bottom: 0; border-left: 1px solid #898781; pointer-events: none; }
+.marker.dashed { border-left-style: dashed; border-left-color: #aab; }
+.marker.my { border-left-color: #c98500; }
+.marker.my .mlabel { color: #c98500; top: 12px; }
+.mlabel { position: absolute; top: -2px; left: 3px; font-size: 0.7rem; color: #99a; white-space: nowrap; }
+.axis { display: flex; justify-content: space-between; max-width: 640px; color: #778; font-size: 0.75rem; margin: 0.3rem 0 0.4rem; }
+.legend { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: baseline; font-size: 0.8rem; color: #aab; margin-bottom: 0.6rem; }
+.legend-title { color: #889; }
+.legend-item { display: inline-flex; align-items: baseline; gap: 0.25rem; }
+.legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.legend .pct { color: #778; font-size: 0.72rem; }
+.mypr { font-size: 0.9rem; color: #aab; margin-top: 0.5rem; }
+.mypr b { color: #cdf; }
 .scroll-x { overflow-x: auto; }
 .grid { width: 100%; border-collapse: collapse; white-space: nowrap; }
 .grid th, .grid td { border: none; border-bottom: 1px solid #33333c; padding: 0.4rem 0.6rem; text-align: right; }
