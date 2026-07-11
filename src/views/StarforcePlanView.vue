@@ -16,6 +16,40 @@ const cap = computed(() => {
   return c
 })
 
+// ── 卷軸 ────────────────────────────────────────────────
+// 目錄（star_force.json 的 scrolls）為「券種家族」：name_zh 內含 n 佔位，n ∈ [n_min, n_max]
+// 每個值都是一張實際卷軸。使用者以「家族 + n + 價格」動態建立要納入評估的列表。
+const scrollCatalog = computed(() => sf.value.scrolls ?? [])
+const familyById = computed(() => Object.fromEntries(scrollCatalog.value.map((f) => [f.id, f])))
+
+// 舊持久化形狀（物件）或無效 family 的列 → 正規化
+if (!Array.isArray(input.scrolls)) input.scrolls = []
+
+// 名稱模板：n星 → 實際星數（如 突破1星強化券100%(n星) → …(21星)）
+const scrollName = (f, n) => f.name_zh.replace('n星', `${n}星`)
+// 裝等限制（追加系列限 Lv.200 以下）
+const familyUsable = (f) => f.max_item_level == null || input.level <= f.max_item_level
+const nOptions = (f) => Array.from({ length: f.n_max - f.n_min + 1 }, (_, i) => f.n_min + i)
+
+const addScroll = () => {
+  const f = scrollCatalog.value.find(familyUsable) ?? scrollCatalog.value[0]
+  if (f) input.scrolls.push({ family: f.id, n: f.n_min, price: null, enabled: true })
+}
+const removeScroll = (i) => input.scrolls.splice(i, 1)
+// 換家族時把 n 夾回該家族範圍
+const onFamilyChange = (row) => {
+  const f = familyById.value[row.family]
+  if (row.n < f.n_min || row.n > f.n_max) row.n = f.n_min
+}
+
+// 有效列：勾選中、家族存在、且裝等符合限制
+const activeScrollRows = computed(() =>
+  input.scrolls.filter((r) => {
+    const f = familyById.value[r.family]
+    return r.enabled && f && familyUsable(f)
+  }),
+)
+
 const startOptions = computed(() => Array.from({ length: cap.value }, (_, i) => i))
 const targetOptions = computed(() =>
   Array.from({ length: cap.value - input.startStar }, (_, i) => input.startStar + 1 + i),
@@ -31,11 +65,19 @@ watch(() => input.startStar, (v) => {
 })
 
 const solved = computed(() => {
+  const guaranteedScrolls = []
+  const additiveScrolls = []
+  for (const r of activeScrollRows.value) {
+    const f = familyById.value[r.family]
+    const price = r.price || 0 // 空 = 0（活動免費券）
+    if (f.kind === 'guaranteed') guaranteedScrolls.push({ star: r.n, price })
+    else additiveScrolls.push({ maxStar: r.n, rate: f.rate, price })
+  }
   try {
     const result = solveStarforce(
       sf.value,
       { level: input.level, startStar: input.startStar, targetStar: input.targetStar },
-      { itemValue: input.itemValue ?? 0 },
+      { itemValue: input.itemValue ?? 0, guaranteedScrolls, additiveScrolls },
       {
         safeguard: input.safeguard,
         discount: input.discountPct ? { costMultiplier: 1 - input.discountPct / 100 } : null,
@@ -50,13 +92,32 @@ const r = computed(() => solved.value.result)
 
 // 逐星策略表（含加成後成功率；起始星以下 = 破壞重來後才會走到的路徑）
 const stepByStar = computed(() => new Map(sf.value.steps.map((s) => [s.star, s])))
-const ACTION_LABEL = {
-  normal: '正常強化',
-  safeguard: '防止破壞（費用 ×3）',
-  additive: '追加卷軸',
-  guaranteed: '必成卷軸',
+// 卷軸動作以實際卷軸名稱顯示：依參數反查啟用列，同參數多列時取最便宜者
+//（solver 對相同 maxStar/rate 只會採用最低價，如 突破100%(21) 與 追加100%(21) 並列時）。
+const cheapestRow = (pred) =>
+  activeScrollRows.value.filter(pred).sort((a, b) => (a.price || 0) - (b.price || 0))[0]
+const actionLabel = (a) => {
+  if (a.type === 'normal') return '正常強化'
+  if (a.type === 'safeguard') return '防止破壞（費用 ×3）'
+  if (a.type === 'guaranteed') {
+    const row = cheapestRow((r) => familyById.value[r.family].kind === 'guaranteed' && r.n === a.star)
+    return row ? scrollName(familyById.value[row.family], row.n) : `必成卷軸（→${a.star}★）`
+  }
+  if (a.type === 'additive') {
+    const row = cheapestRow((r) => {
+      const f = familyById.value[r.family]
+      return f.kind === 'additive' && r.n === a.maxStar && f.rate === a.rate
+    })
+    return row ? scrollName(familyById.value[row.family], row.n) : '追加卷軸'
+  }
+  return a.type
 }
-const REPAIR_LABEL = { restart: '重新開始（回 12★）', restore: '復原（回原星）' }
+// 破壞處理標籤：落點依資料計算（restore 超過上限星時回上限星，如 23★ 破壞 → 回 22★）
+const repairLabel = (p) => {
+  if (!p.repair) return '—'
+  if (p.repair === 'restart') return `重新開始（回 ${sf.value.repair.restart.start_star}★）`
+  return `復原（回 ${Math.min(p.star, sf.value.repair.restore.max_star)}★）`
+}
 const policyRows = computed(() =>
   (r.value?.policy ?? []).map((p) => ({
     ...p,
@@ -116,6 +177,38 @@ const safeguardSkipped = computed(
         <span class="preview">划算時才會被採用</span>
       </label>
     </div>
+
+    <details v-if="scrollCatalog.length" class="scrolls" :open="input.scrolls.length > 0">
+      <summary>卷軸（進階）{{ input.scrolls.length ? `— 已列 ${input.scrolls.length} 張` : '' }}</summary>
+      <p class="hint">
+        卷軸視為可無限量取得（抽獎產出但玩家間交易量充足），僅以單價評估是否划算；划算時才會被採用。
+        必成券的星數＝直上目標；突破／追加券的星數＝可用上限（低於該星時可用，成功 +1 星、失敗維持）。
+        「追加」系列僅限 Lv.200（含）以下裝備。
+      </p>
+      <div class="scroll-rows">
+        <div v-for="(row, i) in input.scrolls" :key="i" class="scroll-row">
+          <input v-model="row.enabled" type="checkbox" title="納入評估" />
+          <select v-model="row.family" @change="onFamilyChange(row)">
+            <option v-for="f in scrollCatalog" :key="f.id" :value="f.id">{{ f.name_zh }}</option>
+          </select>
+          <select v-model.number="row.n">
+            <option v-for="n in nOptions(familyById[row.family])" :key="n" :value="n">{{ n }}★</option>
+          </select>
+          <input
+            v-model.number="row.price"
+            type="number" min="0" step="10000000"
+            placeholder="價格（楓幣/張），空 = 0"
+            :disabled="!row.enabled"
+          />
+          <span class="preview">{{ row.price ? `≈ ${fmtMeso(row.price)}` : '' }}</span>
+          <span v-if="!familyUsable(familyById[row.family])" class="warn">
+            限 Lv.{{ familyById[row.family].max_item_level }} 以下，Lv.{{ input.level }} 不適用（未計入）
+          </span>
+          <button class="rm" title="移除" @click="removeScroll(i)">✕</button>
+        </div>
+        <button class="add" @click="addScroll">＋ 新增卷軸</button>
+      </div>
+    </details>
   </section>
 
   <section v-if="solved.error" class="panel">
@@ -167,8 +260,8 @@ const safeguardSkipped = computed(
             <tr v-for="p in policyRows" :key="p.star" :class="{ below: p.belowStart }">
               <td class="lv">{{ p.star }}★ → {{ p.star + 1 }}★</td>
               <td>{{ fmtPct(p.success) }}</td>
-              <td class="act">{{ ACTION_LABEL[p.action.type] ?? p.action.type }}</td>
-              <td>{{ p.repair ? REPAIR_LABEL[p.repair] : '—' }}</td>
+              <td class="act">{{ actionLabel(p.action) }}</td>
+              <td>{{ repairLabel(p) }}</td>
               <td>{{ fmtMeso(p.expectedCost) }}</td>
             </tr>
           </tbody>
@@ -191,6 +284,25 @@ select, input[type='number'] {
 }
 select { width: auto; }
 .preview { color: #789; font-size: 0.75rem; }
+.scrolls { margin-top: 1rem; }
+.scrolls summary { cursor: pointer; color: #aab; font-size: 0.9rem; user-select: none; }
+.scrolls summary:hover { color: #cdf; }
+.scroll-rows { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; align-items: flex-start; }
+.scroll-row { display: flex; gap: 0.6rem; align-items: center; font-size: 0.85rem; flex-wrap: wrap; }
+.scroll-row input[type='number'] { width: 12rem; }
+.scroll-row input[type='number']:disabled { opacity: 0.4; }
+.scroll-row .preview { min-width: 4rem; }
+.warn { color: #e0a060; font-size: 0.8rem; }
+.rm {
+  background: transparent; color: #866; border: 1px solid #3a3a44; border-radius: 6px;
+  padding: 0.15rem 0.5rem; cursor: pointer; font-size: 0.8rem;
+}
+.rm:hover { background: #3a2a2a; color: #d88; }
+.add {
+  background: transparent; color: #aab; border: 1px dashed #44444f; border-radius: 6px;
+  padding: 0.3rem 0.9rem; cursor: pointer; font-size: 0.85rem;
+}
+.add:hover { background: #2a2a33; color: #cdf; }
 .cards { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
 .stat { background: #2a2a33; border: 1px solid #3a3a44; border-radius: 6px; padding: 0.5rem 0.9rem; display: flex; flex-direction: column; min-width: 11rem; }
 .stat .k { color: #8aa; font-size: 0.8rem; }

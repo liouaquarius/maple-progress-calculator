@@ -73,6 +73,8 @@ src/
 - **difficulty.json**：難度中文名與配色（`color` / `textColor`）。
 - **area.json**：每日區域與 `daily` 碎片量。
 - **missions/destiny.json**、**astra.json**：各任務的 `cost`（消耗量）；命運另含 `requirement.boss`（需單人通關的 Boss）。
-- **star_force.json**：星力每星階的原始 `rates`（success / destroy / maintain，不含常駐 ×1.05，加成由前端計算）與各裝等 `cost`；`repair` 含 restart（12★ 重來）與 restore（各裝等 × 破壞星數的道具數＋楓幣）。
+- **star_force.json**：星力每星階的原始 `rates`（success / destroy / maintain，不含常駐 ×1.05，加成由前端計算）與各裝等 `cost`；`repair` 含 restart（12★ 重來）與 restore（各裝等 × 破壞星數的道具數＋楓幣）。`scrolls` 為卷軸「券種家族」目錄（`name_zh` 內含 `n` 佔位，`n ∈ [n_min, n_max]` 每個值都是一張實際卷軸；策略頁以「家族＋n＋價格」動態建列，視為無限量供應）：
+  - 必成券：`{ "id", "name_zh", "kind": "guaranteed", "n_min", "n_max" }`（無視當前星數直上 n★）
+  - 突破／追加券：`{ "id", "name_zh", "kind": "additive", "n_min", "n_max", "rate" }`（n★ 前可用，成功 `rate` 升 1 星、失敗維持）；舊版「追加」系列另帶 `max_item_level: 200`（僅限該裝等以下使用），與「突破」僅差此限制。
 
 改數值只需編輯這些 JSON，前端 `load.js` 會自動以 `id` join 出 Boss 身分＋各系統獎勵供顯示與計算。

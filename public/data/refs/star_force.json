@@ -11,6 +11,18 @@
     ],
     "currency": "meso"
   },
+  "scrolls": [
+    { "id": "guar", "name_zh": "星力n星強化券", "kind": "guaranteed", "n_min": 10, "n_max": 21 },
+    { "id": "add_100", "name_zh": "突破1星強化券100%(n星)", "kind": "additive", "n_min": 17, "n_max": 25, "rate": 1 },
+    { "id": "add_50", "name_zh": "突破1星強化券50%(n星)", "kind": "additive", "n_min": 21, "n_max": 26, "rate": 0.5 },
+    { "id": "add_30", "name_zh": "突破1星強化券30%(n星)", "kind": "additive", "n_min": 21, "n_max": 26, "rate": 0.3 },
+    { "id": "add_100_lv200", "name_zh": "追加1星強化券100%(n星)", "kind": "additive", "n_min": 21, "n_max": 23, "rate": 1, "max_item_level": 200 },
+    { "id": "add_50_lv200", "name_zh": "追加1星強化券50%(n星)", "kind": "additive", "n_min": 21, "n_max": 23, "rate": 0.5, "max_item_level": 200 },
+    { "id": "add_40_lv200", "name_zh": "追加1星強化券40%(n星)", "kind": "additive", "n_min": 21, "n_max": 24, "rate": 0.4, "max_item_level": 200 },
+    { "id": "add_30_lv200", "name_zh": "追加1星強化券30%(n星)", "kind": "additive", "n_min": 21, "n_max": 24, "rate": 0.3, "max_item_level": 200 },
+    { "id": "add_20_lv200", "name_zh": "追加1星強化券20%(n星)", "kind": "additive", "n_min": 21, "n_max": 24, "rate": 0.2, "max_item_level": 200 },
+    { "id": "add_10_lv200", "name_zh": "追加1星強化券10%(n星)", "kind": "additive", "n_min": 21, "n_max": 24, "rate": 0.1, "max_item_level": 200 }
+  ],
   "steps": [
     {
       "star": 0,
