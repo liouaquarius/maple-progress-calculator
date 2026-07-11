@@ -138,6 +138,24 @@ const policyRows = computed(() =>
   })),
 )
 
+// 分項堆疊比例條：固定色序（藍/青/黃/綠，已對 #232329 面板底驗證 CVD 與對比），
+// 顏色跟隨分項本身、不隨數量重排；0 值分項不畫段、圖例同步省略。
+const BREAKDOWN_PARTS = [
+  { key: 'forge', label: '強化費', color: '#3987e5' },
+  { key: 'restoreMeso', label: '復原楓幣', color: '#199e70' },
+  { key: 'scroll', label: '卷軸', color: '#c98500' },
+  { key: 'itemMeso', label: '道具折算', color: '#008300' },
+]
+const breakdownSegs = computed(() => {
+  const b = r.value?.breakdown
+  if (!b?.total) return []
+  return BREAKDOWN_PARTS.filter((p) => b[p.key] > 0).map((p) => ({
+    ...p,
+    value: b[p.key],
+    pct: (b[p.key] / b.total) * 100,
+  }))
+})
+
 // safeguard 有開但 15–17★ 都沒被採用時，說明「已評估、不划算」以免使用者疑惑
 const safeguardSkipped = computed(
   () =>
@@ -247,11 +265,23 @@ const safeguardSkipped = computed(
           <span class="sub">{{ input.itemValue ? `折算 ${fmtMeso(r.breakdown.itemMeso)}` : '未設市價，未計入總花費' }}</span>
         </div>
       </div>
+      <div v-if="breakdownSegs.length" class="stackbar">
+        <div
+          v-for="s in breakdownSegs"
+          :key="s.key"
+          class="seg"
+          :style="{ width: s.pct + '%', background: s.color }"
+          :title="`${s.label} ${fmtMeso(s.value)}（${s.pct.toFixed(1)}%）`"
+        />
+      </div>
       <div class="breakdown">
-        <span>強化費 <b>{{ fmtMeso(r.breakdown.forge) }}</b></span>
-        <span>＋ 復原楓幣 <b>{{ fmtMeso(r.breakdown.restoreMeso) }}</b></span>
-        <span v-if="r.breakdown.scroll">＋ 卷軸 <b>{{ fmtMeso(r.breakdown.scroll) }}</b></span>
-        <span>＋ 道具折算 <b>{{ fmtMeso(r.breakdown.itemMeso) }}</b></span>
+        <template v-for="(s, i) in breakdownSegs" :key="s.key">
+          <span>
+            {{ i ? '＋ ' : '' }}<i class="dot" :style="{ background: s.color }" />{{ s.label }}
+            <b>{{ fmtMeso(s.value) }}</b>
+            <span class="pct">{{ s.pct.toFixed(1) }}%</span>
+          </span>
+        </template>
         <span>＝ <b class="total">{{ fmtMeso(r.breakdown.total) }}</b></span>
       </div>
     </section>
@@ -326,9 +356,14 @@ select { width: auto; }
 .stat .v { font-weight: bold; font-size: 1.2rem; }
 .stat.main .v { color: #cdf; font-size: 1.4rem; }
 .stat .sub { color: #888; font-size: 0.75rem; }
-.breakdown { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.9rem; color: #aab; }
+/* 分項堆疊比例條：2px 表面間隙分隔段、細條、容器圓角 */
+.stackbar { display: flex; gap: 2px; height: 14px; max-width: 640px; border-radius: 4px; overflow: hidden; margin-bottom: 0.55rem; }
+.stackbar .seg { min-width: 3px; }
+.breakdown { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.9rem; color: #aab; align-items: baseline; }
 .breakdown b { color: #eee; }
 .breakdown .total { color: #cdf; font-size: 1.05rem; }
+.breakdown .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.3rem; }
+.breakdown .pct { color: #778; font-size: 0.75rem; margin-left: 0.15rem; }
 .hint { color: #888; font-size: 0.8rem; margin: 0.2rem 0 0.6rem; }
 .scroll-x { overflow-x: auto; }
 .grid { width: 100%; border-collapse: collapse; white-space: nowrap; }
