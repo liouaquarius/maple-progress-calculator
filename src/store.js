@@ -33,9 +33,9 @@ export const store = reactive({
   bossSel: {}, // bossId -> { enabled, difficulty, partySize }
   destiny: { stageIndex: 0, missionIndex: 0, currentResolve: null }, // currentResolve = 當前 mission 已投入（空 = 0）
   astra: { missionIndex: 0, currentTraces: null, currentErion: null }, // 當前 astra mission 已投入（空 = 0）
-  // 星力策略頁輸入：itemValue = 道具市價（空 = 不計道具成本）、discountPct = 強化費折扣 %（空 = 無）
+  // 星力策略頁輸入：itemValue = 道具市價（空 = 不計道具成本）、vipTier = 消費階級 id（折扣，見 star_force.json discount）
   // scrolls = 使用者建立的卷軸列表 [{ family, n, price, enabled }]（family 對應 star_force.json scrolls 的 id）
-  starforce: { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, discountPct: null, scrolls: [] },
+  starforce: { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, vipTier: 'none', scrolls: [] },
 })
 
 // 依資料建立 boss 選擇預設（最低真實難度、1 人、未勾選）。difficulty 存的是 tier id。
@@ -56,7 +56,7 @@ function applyDefaults() {
   store.targetDate = todayStr()
   Object.assign(store.destiny, { stageIndex: 0, missionIndex: 0, currentResolve: null })
   Object.assign(store.astra, { missionIndex: 0, currentTraces: null, currentErion: null })
-  Object.assign(store.starforce, { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, discountPct: null, scrolls: [] })
+  Object.assign(store.starforce, { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, vipTier: 'none', scrolls: [] })
   store.bossSel = store.data ? defaultBossSel(store.data) : {}
 }
 

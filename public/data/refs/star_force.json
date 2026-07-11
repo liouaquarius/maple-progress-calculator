@@ -11,6 +11,15 @@
     ],
     "currency": "meso"
   },
+  "discount": {
+    "max_star": 16,
+    "tiers": [
+      { "id": "none", "name_zh": "無VIP", "pct": 0 },
+      { "id": "gold", "name_zh": "金牌", "pct": 3 },
+      { "id": "diamond", "name_zh": "鑽石", "pct": 5 },
+      { "id": "royal", "name_zh": "皇家", "pct": 10 }
+    ]
+  },
   "scrolls": [
     { "id": "guar", "name_zh": "星力n星強化券", "kind": "guaranteed", "n_min": 10, "n_max": 21 },
     { "id": "add_100", "name_zh": "突破1星強化券100%(n星)", "kind": "additive", "n_min": 17, "n_max": 25, "rate": 1 },

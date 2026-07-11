@@ -86,14 +86,16 @@ const ZERO = { forge: 0, restoreMeso: 0, scroll: 0, items: 0 }
 //   policy: [ { star, action, repair, expectedCost } ]  // expectedCost = 該星到 target 剩餘期望總成本
 // }
 //   prices  = { itemValue, guaranteedScrolls:[{star,price}], additiveScrolls:[{maxStar,rate,price}] }
-//   options = { safeguard=true, discount:{ costMultiplier } | null }
+//   options = { safeguard=true, discount:{ costMultiplier, maxStar } | null }
+//             discount 僅套用於 star <= maxStar 的強化費（如消費階級折扣限 16★ 以下）；maxStar 省略 = 全星階
 export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}, options = {}) {
   const lv = String(level)
   const V = prices.itemValue ?? 0
   const guaranteed = prices.guaranteedScrolls ?? []
   const additive = prices.additiveScrolls ?? []
   const useSafeguard = options.safeguard !== false
-  const costMul = options.discount?.costMultiplier ?? 1 // 5-3 折扣 hook（預設無影響）
+  const costMul = options.discount?.costMultiplier ?? 1
+  const discountMaxStar = options.discount?.maxStar ?? Infinity // 折扣適用的最高星（含）
 
   const levels = sf.meta?.item_levels ?? []
   if (levels.length && !levels.includes(level)) {
@@ -125,7 +127,7 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
     const step = stepByStar.get(k)
     info.set(k, {
       rates: boostedRates(step.rates),
-      cost: step.cost[lv] != null ? step.cost[lv] * costMul : null, // null → k≥cap，不能正常強化
+      cost: step.cost[lv] != null ? step.cost[lv] * (k <= discountMaxStar ? costMul : 1) : null, // null → k≥cap，不能正常強化
     })
   }
 

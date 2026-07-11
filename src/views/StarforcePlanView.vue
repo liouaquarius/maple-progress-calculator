@@ -16,6 +16,10 @@ const cap = computed(() => {
   return c
 })
 
+// 消費階級折扣（star_force.json discount）：僅套用於 max_star（含）以下的強化費
+const discountTiers = computed(() => sf.value.discount?.tiers ?? [])
+const vipTier = computed(() => discountTiers.value.find((t) => t.id === input.vipTier))
+
 // ── 卷軸 ────────────────────────────────────────────────
 // 目錄（star_force.json 的 scrolls）為「券種家族」：name_zh 內含 n 佔位，n ∈ [n_min, n_max]
 // 每個值都是一張實際卷軸。使用者以「家族 + n + 價格」動態建立要納入評估的列表。
@@ -80,7 +84,9 @@ const solved = computed(() => {
       { itemValue: input.itemValue ?? 0, guaranteedScrolls, additiveScrolls },
       {
         safeguard: input.safeguard,
-        discount: input.discountPct ? { costMultiplier: 1 - input.discountPct / 100 } : null,
+        discount: vipTier.value?.pct
+          ? { costMultiplier: 1 - vipTier.value.pct / 100, maxStar: sf.value.discount.max_star }
+          : null,
       },
     )
     return { result, error: null }
@@ -168,9 +174,14 @@ const safeguardSkipped = computed(
         <input v-model.number="input.itemValue" type="number" min="0" step="1000000" placeholder="0 = 不計道具成本" />
         <span v-if="input.itemValue" class="preview">≈ {{ fmtMeso(input.itemValue) }}</span>
       </label>
-      <label class="field">
-        強化費折扣（%）
-        <input v-model.number="input.discountPct" type="number" min="0" max="100" step="5" placeholder="無" />
+      <label v-if="discountTiers.length" class="field">
+        消費階級（強化費折扣）
+        <select v-model="input.vipTier">
+          <option v-for="t in discountTiers" :key="t.id" :value="t.id">
+            {{ t.name_zh }}{{ t.pct ? `（${t.pct}%）` : '' }}
+          </option>
+        </select>
+        <span class="preview">折扣僅套用 {{ sf.discount.max_star }}★（含）以下的強化費</span>
       </label>
       <label class="field check">
         <span><input v-model="input.safeguard" type="checkbox" /> 允許防止破壞（15–17★）</span>
