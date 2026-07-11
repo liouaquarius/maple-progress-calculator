@@ -1,10 +1,10 @@
 <script setup>
-// 星力 — 機率成本表：star_force.json 的靜態排版展示（不做期望值等衍生指標）。
+// 星力 — 機率成本表：star_force.json 的靜態排版展示，加上「期望花費表」衍生區塊。
 // 機率可切換「原始 / 常駐 ×1.05 加成後」；費用與救回表皆為 JSON 原值。
 import { ref, computed } from 'vue'
 import { store } from '../store.js'
-import { boostedRates, SUCCESS_MULTIPLIER } from '../lib/starforce.js'
-import { fmtInt, fmtPct } from '../utils/format.js'
+import { boostedRates, solveStarforce, SUCCESS_MULTIPLIER } from '../lib/starforce.js'
+import { fmtInt, fmtMeso, fmtPct } from '../utils/format.js'
 
 const sf = computed(() => store.data.starforce)
 const levels = computed(() => sf.value.meta.item_levels)
@@ -32,6 +32,43 @@ const restoreStars = computed(() => {
 })
 // 無 restore 資料的裝等（如 130）→ 表下註記
 const restartOnlyLevels = computed(() => levels.value.filter((lv) => !restoreLevels.value.includes(lv)))
+
+// ── 期望花費表（純強化基準）────────────────────────────
+// 固定假設：無卷軸、道具不計價（另列期望道具數）、防止破壞自動擇優；
+// 消費階級與策略頁共用 store.starforce.vipTier。個人化（卷軸/市價）請用策略頁。
+const capOf = (lv) => {
+  let c = 0
+  for (const s of sf.value.steps) if (s.cost[lv] != null) c = Math.max(c, s.star + 1)
+  return c
+}
+const caps = computed(() => Object.fromEntries(levels.value.map((lv) => [lv, capOf(lv)])))
+const maxCap = computed(() => Math.max(...Object.values(caps.value)))
+
+const expectStart = ref(12)
+const expectStartOptions = computed(() => Array.from({ length: maxCap.value }, (_, i) => i))
+const discountTiers = computed(() => sf.value.discount?.tiers ?? [])
+const expectVip = computed(() => discountTiers.value.find((t) => t.id === store.starforce.vipTier))
+
+const expectRows = computed(() => {
+  const discount = expectVip.value?.pct
+    ? { costMultiplier: 1 - expectVip.value.pct / 100, maxStar: sf.value.discount.max_star }
+    : null
+  const rows = []
+  for (let t = expectStart.value + 1; t <= maxCap.value; t++) {
+    const cells = levels.value.map((lv) => {
+      if (t > caps.value[lv]) return null
+      const r = solveStarforce(
+        sf.value,
+        { level: lv, startStar: expectStart.value, targetStar: t },
+        {},
+        { discount },
+      )
+      return { meso: r.expectedMeso, items: r.expectedItems }
+    })
+    rows.push({ target: t, cells })
+  }
+  return rows
+})
 </script>
 
 <template>
@@ -118,6 +155,56 @@ const restartOnlyLevels = computed(() => levels.value.filter((lv) => !restoreLev
       </table>
     </div>
   </section>
+
+  <section class="panel">
+    <h2>期望花費表（純強化基準）</h2>
+    <ul class="rules">
+      <li>由「期望總花費最小化」求解，成功率含常駐 ×{{ SUCCESS_MULTIPLIER }}；<b>不含卷軸</b>、道具不計價、防止破壞與破壞救回自動擇優。</li>
+      <li>格內小字為破壞救回消耗的<b>期望道具數</b>；策略以道具免費為前提求解，道具市價高時實際最優成本會略高於表值。</li>
+      <li>要計入卷軸與道具市價的個人化結果，請用 <RouterLink class="link" to="/starforce/planner">強化策略計算</RouterLink>。</li>
+    </ul>
+
+    <div class="fields">
+      <label class="field">
+        起始星數
+        <select v-model.number="expectStart">
+          <option v-for="s in expectStartOptions" :key="s" :value="s">{{ s }}★</option>
+        </select>
+      </label>
+      <label v-if="discountTiers.length" class="field">
+        消費階級（強化費折扣）
+        <select v-model="store.starforce.vipTier">
+          <option v-for="t in discountTiers" :key="t.id" :value="t.id">
+            {{ t.name_zh }}{{ t.pct ? `（${t.pct}%）` : '' }}
+          </option>
+        </select>
+        <span class="preview">與策略頁共用；折扣僅套用 {{ sf.discount.max_star }}★（含）以下</span>
+      </label>
+    </div>
+
+    <div class="scroll-x">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>目標星數</th>
+            <th v-for="lv in levels" :key="lv">Lv.{{ lv }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in expectRows" :key="row.target">
+            <td class="lv">{{ expectStart }}★ → {{ row.target }}★</td>
+            <td v-for="(c, i) in row.cells" :key="levels[i]">
+              <template v-if="c">
+                <b>{{ fmtMeso(c.meso) }}</b>
+                <span v-if="c.items >= 0.005" class="items">{{ c.items.toFixed(1) }} 個</span>
+              </template>
+              <span v-else class="dim">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </template>
 
 <style scoped>
@@ -145,4 +232,16 @@ const restartOnlyLevels = computed(() => levels.value.filter((lv) => !restoreLev
 .ok { color: #8ad08a; }
 .bad { color: #d08a8a; }
 .dim { color: #666; }
+.link { color: #8ab4e8; }
+
+/* 期望花費表：控制項與格內期望道具數小字 */
+.fields { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+.field { display: inline-flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; color: #aab; }
+select {
+  background: #1a1a22; color: #eee; border: 1px solid #44444f; border-radius: 6px;
+  padding: 0.35rem 0.5rem; font-size: 0.9rem; width: fit-content;
+}
+.preview { color: #789; font-size: 0.75rem; }
+.grid td b { color: #eee; font-weight: 600; }
+.items { display: block; color: #778; font-size: 0.72rem; }
 </style>
