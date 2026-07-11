@@ -1,4 +1,22 @@
-// 顯示層格式工具：把語意數字（JSON 內維持阿拉伯數字）轉成羅馬數字呈現。
+// 顯示層格式工具：羅馬數字、千分位、大額楓幣（萬/億/兆）、百分比。
+
+// 千分位整數（四捨五入）
+export const fmtInt = (n) => Math.round(n).toLocaleString('en-US')
+
+// 大額楓幣縮寫：取 萬/億/兆 層級，保留至多 4 位有效數字（如 29,216,259,880 → 292.2億）
+export function fmtMeso(n) {
+  if (n == null) return '—'
+  const abs = Math.abs(n)
+  for (const [v, u] of [[1e12, '兆'], [1e8, '億'], [1e4, '萬']]) {
+    if (abs >= v) return `${parseFloat((n / v).toPrecision(4)).toLocaleString('en-US')}${u}`
+  }
+  return fmtInt(n)
+}
+
+// 機率 → 百分比字串，至多 2 位小數（尾零去除，如 0.679 → 67.9%）
+export const fmtPct = (x) => `${parseFloat((x * 100).toFixed(2))}%`
+
+// 把語意數字（JSON 內維持阿拉伯數字）轉成羅馬數字呈現。
 const ROMAN = [
   [10, 'X'],
   [9, 'IX'],

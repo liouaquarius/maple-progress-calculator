@@ -33,6 +33,8 @@ export const store = reactive({
   bossSel: {}, // bossId -> { enabled, difficulty, partySize }
   destiny: { stageIndex: 0, missionIndex: 0, currentResolve: null }, // currentResolve = 當前 mission 已投入（空 = 0）
   astra: { missionIndex: 0, currentTraces: null, currentErion: null }, // 當前 astra mission 已投入（空 = 0）
+  // 星力策略頁輸入：itemValue = 道具市價（空 = 不計道具成本）、discountPct = 強化費折扣 %（空 = 無）
+  starforce: { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, discountPct: null },
 })
 
 // 依資料建立 boss 選擇預設（最低真實難度、1 人、未勾選）。difficulty 存的是 tier id。
@@ -53,14 +55,15 @@ function applyDefaults() {
   store.targetDate = todayStr()
   Object.assign(store.destiny, { stageIndex: 0, missionIndex: 0, currentResolve: null })
   Object.assign(store.astra, { missionIndex: 0, currentTraces: null, currentErion: null })
+  Object.assign(store.starforce, { level: 160, startStar: 12, targetStar: 22, itemValue: null, safeguard: true, discountPct: null })
   store.bossSel = store.data ? defaultBossSel(store.data) : {}
 }
 
 // 持久化（localStorage）：僅存 input 相關欄位
 function persist() {
   try {
-    const { level, startDate, useTargetDate, targetDate, bossSel, destiny, astra } = store
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ level, startDate, useTargetDate, targetDate, bossSel, destiny, astra }))
+    const { level, startDate, useTargetDate, targetDate, bossSel, destiny, astra, starforce } = store
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ level, startDate, useTargetDate, targetDate, bossSel, destiny, astra, starforce }))
   } catch {
     /* 無 localStorage 時略過 */
   }
@@ -81,6 +84,7 @@ function hydrate() {
   if (saved.targetDate) store.targetDate = saved.targetDate
   if (saved.destiny) Object.assign(store.destiny, saved.destiny)
   if (saved.astra) Object.assign(store.astra, saved.astra)
+  if (saved.starforce) Object.assign(store.starforce, saved.starforce)
   if (saved.bossSel) {
     for (const [id, v] of Object.entries(saved.bossSel)) {
       if (store.bossSel[id]) Object.assign(store.bossSel[id], v)
@@ -105,7 +109,7 @@ loadGameData()
     hydrate() // 先還原儲存值（在 InputView 掛載前，不會被其重設 watcher 影響）
     // 之後任何 input 變更都即時持久化
     watch(
-      () => [store.level, store.startDate, store.useTargetDate, store.targetDate, store.bossSel, store.destiny, store.astra],
+      () => [store.level, store.startDate, store.useTargetDate, store.targetDate, store.bossSel, store.destiny, store.astra, store.starforce],
       persist,
       { deep: true },
     )

@@ -41,6 +41,7 @@ export async function loadGameData() {
     cwTiers,
     cwBosses,
     cwLevels,
+    starforce,
   ] = await Promise.all([
     loadJson('refs/item.json'),
     loadJson('refs/boss.json'), // boss 身分主檔（id/name/name_zh/每難度 level・party）
@@ -52,6 +53,7 @@ export async function loadGameData() {
     loadJson('missions/cw_s3_tier.json'), // Challengers World S3：段位需求
     loadJson('refs/cw_s3_boss.json'), // Challengers World S3：boss 得分
     loadJson('refs/cw_s3_level.json'), // Challengers World S3：等級得分
+    loadJson('refs/star_force.json'), // 星力：每星機率/費用、破壞救回設定
   ])
 
   const rosterById = indexById(roster)
@@ -78,5 +80,6 @@ export async function loadGameData() {
     destiny,
     astra,
     cw: { tiers: cwTiers, bosses: cwBossList, levels: cwLevels },
+    starforce,
   }
 }
