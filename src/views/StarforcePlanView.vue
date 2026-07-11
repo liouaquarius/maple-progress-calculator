@@ -26,8 +26,14 @@ const vipTier = computed(() => discountTiers.value.find((t) => t.id === input.vi
 const scrollCatalog = computed(() => sf.value.scrolls ?? [])
 const familyById = computed(() => Object.fromEntries(scrollCatalog.value.map((f) => [f.id, f])))
 
-// 舊持久化形狀（物件）或無效 family 的列 → 正規化
+// 持久化資料正規化：舊形狀（物件）重置；目錄已移除的券種丟棄；n 超出現行範圍時夾回
+//（券種會隨遊戲版本增減，localStorage 可能殘留舊列）
 if (!Array.isArray(input.scrolls)) input.scrolls = []
+input.scrolls = input.scrolls.filter((r) => familyById.value[r.family])
+for (const r of input.scrolls) {
+  const f = familyById.value[r.family]
+  r.n = Math.min(Math.max(r.n, f.n_min), f.n_max)
+}
 
 // 名稱模板：n星 → 實際星數（如 突破1星強化券100%(n星) → …(21星)）
 const scrollName = (f, n) => f.name_zh.replace('n星', `${n}星`)
