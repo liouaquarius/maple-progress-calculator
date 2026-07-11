@@ -44,28 +44,36 @@ const capOf = (lv) => {
 const caps = computed(() => Object.fromEntries(levels.value.map((lv) => [lv, capOf(lv)])))
 const maxCap = computed(() => Math.max(...Object.values(caps.value)))
 
-const expectStart = ref(12)
-const expectStartOptions = computed(() => Array.from({ length: maxCap.value }, (_, i) => i))
 const discountTiers = computed(() => sf.value.discount?.tiers ?? [])
 const expectVip = computed(() => discountTiers.value.find((t) => t.id === store.starforce.vipTier))
+
+// 檢視模式：marginal = 逐項（n→n+1，首達期望，預設）、cumulative = 累計（0★→目標）。
+// 逐項列相加恆等於累計列（首達時間分解），且純強化下策略與目標無關，故逐項值良定義。
+const expectMode = ref('marginal')
 
 const expectRows = computed(() => {
   const discount = expectVip.value?.pct
     ? { costMultiplier: 1 - expectVip.value.pct / 100, maxStar: sf.value.discount.max_star }
     : null
+  const solve = (lv, from, to) => {
+    const r = solveStarforce(sf.value, { level: lv, startStar: from, targetStar: to }, {}, { discount })
+    return { meso: r.expectedMeso, items: r.expectedItems }
+  }
   const rows = []
-  for (let t = expectStart.value + 1; t <= maxCap.value; t++) {
-    const cells = levels.value.map((lv) => {
-      if (t > caps.value[lv]) return null
-      const r = solveStarforce(
-        sf.value,
-        { level: lv, startStar: expectStart.value, targetStar: t },
-        {},
-        { discount },
-      )
-      return { meso: r.expectedMeso, items: r.expectedItems }
-    })
-    rows.push({ target: t, cells })
+  if (expectMode.value === 'marginal') {
+    for (let n = 0; n < maxCap.value; n++) {
+      rows.push({
+        label: `${n}★ → ${n + 1}★`,
+        cells: levels.value.map((lv) => (n >= caps.value[lv] ? null : solve(lv, n, n + 1))),
+      })
+    }
+  } else {
+    for (let t = 1; t <= maxCap.value; t++) {
+      rows.push({
+        label: `${t}★`,
+        cells: levels.value.map((lv) => (t > caps.value[lv] ? null : solve(lv, 0, t))),
+      })
+    }
   }
   return rows
 })
@@ -161,16 +169,20 @@ const expectRows = computed(() => {
     <ul class="rules">
       <li>由「期望總花費最小化」求解，成功率含常駐 ×{{ SUCCESS_MULTIPLIER }}；<b>不含卷軸</b>、道具不計價、防止破壞與破壞救回自動擇優。</li>
       <li>格內小字為破壞救回消耗的<b>期望道具數</b>；策略以道具免費為前提求解，道具市價高時實際最優成本會略高於表值。</li>
+      <li>
+        <b>逐項</b>＝從 n★ <b>首次</b>到達 n+1★ 的總花費，<b>含破壞退回後爬回原星的全部費用</b>
+        （如 21★→22★ 內含破壞後 12★ 重爬的強化費），並非「按一次強化」的費用；
+        <b>累計</b>＝自 0★ 起到目標星的總花費，等於逐項各列相加。
+      </li>
       <li>要計入卷軸與道具市價的個人化結果，請用 <RouterLink class="link" to="/starforce/planner">強化策略計算</RouterLink>。</li>
     </ul>
 
+    <div class="mode-switch">
+      <button :class="{ on: expectMode === 'marginal' }" @click="expectMode = 'marginal'">逐項</button>
+      <button :class="{ on: expectMode === 'cumulative' }" @click="expectMode = 'cumulative'">累計</button>
+    </div>
+
     <div class="fields">
-      <label class="field">
-        起始星數
-        <select v-model.number="expectStart">
-          <option v-for="s in expectStartOptions" :key="s" :value="s">{{ s }}★</option>
-        </select>
-      </label>
       <label v-if="discountTiers.length" class="field">
         消費階級（強化費折扣）
         <select v-model="store.starforce.vipTier">
@@ -186,13 +198,13 @@ const expectRows = computed(() => {
       <table class="grid">
         <thead>
           <tr>
-            <th>目標星數</th>
+            <th>{{ expectMode === 'marginal' ? '星階' : '目標星數' }}</th>
             <th v-for="lv in levels" :key="lv">Lv.{{ lv }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in expectRows" :key="row.target">
-            <td class="lv">{{ expectStart }}★ → {{ row.target }}★</td>
+          <tr v-for="row in expectRows" :key="row.label">
+            <td class="lv">{{ row.label }}</td>
             <td v-for="(c, i) in row.cells" :key="levels[i]">
               <template v-if="c">
                 <b>{{ fmtMeso(c.meso) }}</b>
