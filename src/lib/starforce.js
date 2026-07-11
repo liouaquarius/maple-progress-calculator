@@ -70,13 +70,36 @@ export function repairOptions(destroyStar, level, repair) {
 //
 // 起始道具不計底價（sunk）；破壞消耗的新道具、卷軸才計費，皆折算成 meso 供比較。
 // 費用分項：forge（強化費）/ restoreMeso（restore 楓幣）/ scroll（卷軸費）/ items（道具「數量」）。
-// G(k) 自我參照（維持、restore 回原星）＋外層 min 為非線性，故用 value iteration。
-// 求得最優策略後，同一引擎（固定策略下的線性期望）再解各分項與道具數，
+// G(k) 自我參照（維持、restore 回原星）＋外層 min 為非線性，用政策疊代求解：
+//   evaluation：固定策略下 G 為線性方程組，高斯消去直接解（狀態數 ≤ max_star，成本可忽略）；
+//   improvement：對當前 G 逐星取期望成本最低的動作；策略不再變動即為最優。
+// （曾用 value iteration：破壞退回 12★ 的長回路使收斂比率趨近 1，單次求解需上千圈，
+//   政策疊代 + 直接解把單次求解從 ~17ms 降到 <1ms。）
+// 求得最優策略後，同一方程組換 RHS 再解各分項與道具數，
 // 各分項折算 meso 之和恆等於總期望（自我驗證）。
 
-const MAX_ITER = 20000
-const TOL = 1e-9
+const PI_MAX_ITER = 500
 const ZERO = { forge: 0, restoreMeso: 0, scroll: 0, items: 0 }
+
+// 解 A x = b（多組 RHS）：Gauss-Jordan 含部分選主元。A n×n、bs = [b…]，回傳與 bs 對應的解。
+function gaussianSolveMulti(A, bs) {
+  const n = A.length
+  const m = bs.length
+  const M = A.map((row, i) => [...row, ...bs.map((b) => b[i])])
+  for (let col = 0; col < n; col++) {
+    let piv = col
+    for (let r = col + 1; r < n; r++) if (Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r
+    ;[M[col], M[piv]] = [M[piv], M[col]]
+    const d = M[col][col]
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue
+      const f = M[r][col] / d
+      if (!f) continue
+      for (let c = col; c < n + m; c++) M[r][c] -= f * M[col][c]
+    }
+  }
+  return bs.map((_, j) => A.map((_, i) => M[i][n + j] / M[i][i]))
+}
 
 // 回傳 {
 //   expectedMeso,                     // 期望總成本（= breakdown.total）
@@ -211,42 +234,61 @@ export function solveStarforce(sf, { level, startStar, targetStar }, prices = {}
     return { best, cell }
   }
 
-  // 主 value iteration：求 G 與最優策略
-  let converged = false
-  for (let iter = 0; iter < MAX_ITER; iter++) {
-    let maxDelta = 0
-    for (let k = targetStar - 1; k >= lo; k--) {
-      const { best, cell } = bestAction(k)
-      maxDelta = Math.max(maxDelta, Math.abs(best - G[k]))
-      G[k] = best
-      chosen.set(k, cell)
-    }
-    if (maxDelta < TOL * (1 + Math.abs(G[lo]))) { converged = true; break }
-  }
-
-  // 固定策略下解某分項（reward）的期望：F(k) = [base + Σ prob·(add + F(next非self))] / (1-selfProb)
-  const expectBy = (reward) => {
-    const F = new Array(targetStar + 1).fill(0)
-    const at = (s) => (s >= targetStar ? 0 : F[s])
-    for (let iter = 0; iter < MAX_ITER; iter++) {
-      let maxDelta = 0
-      for (let k = targetStar - 1; k >= lo; k--) {
-        const c = chosen.get(k)
-        let num = c.base[reward]
-        for (const s of c.successors) num += s.prob * (s.add[reward] + (s.star === k ? 0 : at(s.star)))
-        const val = num / (1 - c.selfProb)
-        maxDelta = Math.max(maxDelta, Math.abs(val - F[k]))
-        F[k] = val
+  // 固定策略 → 線性方程組：(1-selfProb)·F[k] − Σ_{next≠k, next<target} prob·F[next] = RHS(k)
+  // rewards 為多組 RHS 的鍵（'meso' = 折算總成本，其餘取 base/add 的對應分項）。
+  const n = targetStar - lo
+  const idx = (k) => k - lo
+  const buildSystem = (rewards) => {
+    const A = Array.from({ length: n }, () => new Array(n).fill(0))
+    const bs = rewards.map(() => new Array(n).fill(0))
+    for (let k = lo; k < targetStar; k++) {
+      const c = chosen.get(k)
+      const i = idx(k)
+      A[i][i] = 1 - c.selfProb
+      for (const s of c.successors) {
+        if (s.star !== k && s.star < targetStar) A[i][idx(s.star)] -= s.prob
       }
-      if (maxDelta < TOL * (1 + Math.abs(F[lo]))) break
+      rewards.forEach((rw, j) => {
+        let v = rw === 'meso' ? mesoOf(c.base) : c.base[rw]
+        for (const s of c.successors) v += s.prob * (rw === 'meso' ? mesoOf(s.add) : s.add[rw])
+        bs[j][i] = v
+      })
     }
-    return F[startStar]
+    return { A, bs }
   }
 
-  const forge = expectBy('forge')
-  const restoreMeso = expectBy('restoreMeso')
-  const scroll = expectBy('scroll')
-  const expectedItems = expectBy('items')
+  // 動作簽章：policy 是否變動的判準（同參數不同價的卷軸以 scroll 費用區分）。
+  const cellSig = (c) =>
+    `${c.action.type}:${c.action.star ?? c.action.maxStar ?? ''}:${c.action.rate ?? ''}:${c.repair ?? ''}:${c.base.scroll}`
+
+  // 政策疊代：improvement（對當前 G 貪婪，首圈 G=0）→ evaluation（直接解 G）→ 直到策略穩定。
+  let converged = false
+  const sigs = new Map()
+  for (let iter = 0; iter < PI_MAX_ITER; iter++) {
+    let changed = false
+    for (let k = targetStar - 1; k >= lo; k--) {
+      const { cell } = bestAction(k)
+      const sig = cellSig(cell)
+      if (sigs.get(k) !== sig) {
+        changed = true
+        sigs.set(k, sig)
+        chosen.set(k, cell)
+      }
+    }
+    if (!changed && iter > 0) { converged = true; break }
+    const { A, bs } = buildSystem(['meso'])
+    const [g] = gaussianSolveMulti(A, bs)
+    for (let k = lo; k < targetStar; k++) G[k] = g[idx(k)]
+  }
+
+  // 最優策略下的分項期望：同一係數矩陣、多組 RHS 一次解
+  const { A, bs } = buildSystem(['forge', 'restoreMeso', 'scroll', 'items'])
+  const [forgeF, restoreF, scrollF, itemsF] = gaussianSolveMulti(A, bs)
+  const at = (F) => F[idx(startStar)]
+  const forge = at(forgeF)
+  const restoreMeso = at(restoreF)
+  const scroll = at(scrollF)
+  const expectedItems = at(itemsF)
   const itemMeso = expectedItems * V
   const total = forge + restoreMeso + scroll + itemMeso
 
